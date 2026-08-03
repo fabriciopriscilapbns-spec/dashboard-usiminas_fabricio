@@ -12,6 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Chart.js DataLabels Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <!-- SheetJS (Para leitura de planilhas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- html2pdf.js (Exportação PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
@@ -377,11 +379,381 @@
                 "codigo": "VM3",
                 "motivo": "VM - atraso de convertedor (0,6).",
                 "motivoPadronizado": "Atraso do Convertedor"
+            },
+            {
+                "data": "13/03/2026",
+                "mes": "Março",
+                "equipe": "A",
+                "lider": "Plinio",
+                "maquina": "4",
+                "serie": "8527",
+                "corrida": "370715",
+                "material": "AS 14 86",
+                "placa": "211",
+                "codigo": "VM3",
+                "motivo": "VM - atraso de convertedor (0,6).",
+                "motivoPadronizado": "Atraso do Convertedor"
+            },
+            {
+                "data": "14/03/2026",
+                "mes": "Março",
+                "equipe": "A",
+                "lider": "Paulo Roberto",
+                "maquina": "1",
+                "serie": "28193",
+                "corrida": "574189",
+                "material": "AS 10 160",
+                "placa": "Hot geradas no turno:16",
+                "codigo": "RFL",
+                "motivo": "RFL, Ajuste do molde atrasado devido hidrogênio alto. Máquina 01 Não houve anormalidade.",
+                "motivoPadronizado": "Hidrogênio Alto"
+            },
+            {
+                "data": "14/03/26",
+                "mes": "Março",
+                "equipe": "D",
+                "lider": "Claudinei",
+                "maquina": "4",
+                "serie": "8527",
+                "corrida": "172270",
+                "material": "JYCH AS 14 66",
+                "placa": "221-232",
+                "codigo": "REG",
+                "motivo": "REG devido falha no sistema de programação solicitando passar placa para reserva",
+                "motivoPadronizado": "Outros"
             }
-            // ... (o restante dos registros está embutido aqui)
         ];
 
-        // [Insira o restante da sua lógica de scripts e renderização padrão aqui]
+        let aciariaFiltroAtual = 'TODAS';
+
+        function filtrarAciaria(tipo) {
+            aciariaFiltroAtual = tipo;
+            document.querySelectorAll('.btn-aciaria').forEach(b => b.classList.remove('ativo'));
+            if(tipo === 'TODAS') document.getElementById('btnAciariaTodas').classList.add('ativo');
+            if(tipo === '1') document.getElementById('btnAciaria1').classList.add('ativo');
+            if(tipo === '2') document.getElementById('btnAciaria2').classList.add('ativo');
+            aplicarFiltrosGlobais();
+        }
+
+        let equipeSelecionadaCard = 'TODOS';
+        function clicarCardEquipe(eq) {
+            const card = document.getElementById('cardEq' + eq);
+            if(equipeSelecionadaCard === eq) {
+                equipeSelecionadaCard = 'TODOS';
+                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
+            } else {
+                equipeSelecionadaCard = eq;
+                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
+                card.classList.add('ativa');
+            }
+            document.getElementById('filtroEquipe').value = equipeSelecionadaCard;
+            aplicarFiltrosGlobais();
+        }
+
+        function popularFiltroMotivos(dados) {
+            const select = document.getElementById('filtroMotivoSelect');
+            const valorAtual = select.value;
+            const motivosUnicos = [...new Set(dados.map(d => d.motivoPadronizado))].sort();
+            select.innerHTML = '<option value="TODOS">Todos os Motivos</option>';
+            motivosUnicos.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                if(m === valorAtual) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        let chartParetoInstance = null;
+        let chartVMInstance = null;
+
+        function aplicarFiltrosGlobais() {
+            const eq = document.getElementById('filtroEquipe').value;
+            const maq = document.getElementById('filtroMaquina').value;
+            const mes = document.getElementById('filtroMes').value;
+            const motivo = document.getElementById('filtroMotivoSelect').value;
+            const texto = document.getElementById('filtroTexto').value.toLowerCase();
+
+            if(eq !== equipeSelecionadaCard && eq !== 'TODOS') {
+                equipeSelecionadaCard = eq;
+                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
+                const card = document.getElementById('cardEq' + eq);
+                if(card) card.classList.add('ativa');
+            } else if(eq === 'TODOS' && equipeSelecionadaCard !== 'TODOS') {
+                equipeSelecionadaCard = 'TODOS';
+                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
+            }
+
+            let filtrados = baseDados.filter(d => {
+                if(aciariaFiltroAtual === '1' && d.maquina !== '4') return false;
+                if(aciariaFiltroAtual === '2' && d.maquina === '4') return false;
+                if(eq !== 'TODOS' && d.equipe !== eq) return false;
+                if(maq !== 'TODOS' && d.maquina !== maq) return false;
+                if(mes !== 'TODOS' && d.mes !== mes) return false;
+                if(motivo !== 'TODOS' && d.motivoPadronizado !== motivo) return false;
+                if(texto) {
+                    const blob = (d.motivo + " " + d.lider + " " + d.corrida + " " + d.material).toLowerCase();
+                    if(!blob.includes(texto)) return false;
+                }
+                return true;
+            });
+
+            atualizarCardsEquipesResumo(baseDados);
+            atualizarKPIs(filtrados);
+            renderizarEvolucaoMensal(filtrados);
+            renderizarPareto(filtrados);
+            renderizarVM(filtrados);
+            renderizarTabela(filtrados);
+        }
+
+        function atualizarCardsEquipesResumo(dados) {
+            const total = dados.length || 1;
+            ['A', 'B', 'C', 'D'].forEach(eq => {
+                const qtd = dados.filter(d => d.equipe === eq).length;
+                const pct = ((qtd / total) * 100).toFixed(1) + '%';
+                document.getElementById('eq' + eq + 'Qtd').textContent = qtd;
+                document.getElementById('eq' + eq + 'Pct').textContent = pct;
+            });
+        }
+
+        function atualizarKPIs(dados) {
+            document.getElementById('kpiTotal').textContent = dados.length;
+
+            const mapMotivos = {};
+            dados.forEach(d => {
+                mapMotivos[d.motivoPadronizado] = (mapMotivos[d.motivoPadronizado] || 0) + 1;
+            });
+            let principalMotivo = "-";
+            let maxMotivo = 0;
+            for(let m in mapMotivos) {
+                if(mapMotivos[m] > maxMotivo) {
+                    maxMotivo = mapMotivos[m];
+                    principalMotivo = m;
+                }
+            }
+            document.getElementById('kpiPrincipalCodigo').textContent = principalMotivo;
+            document.getElementById('kpiPrincipalSub').textContent = maxMotivo + " ocorrências registradas";
+
+            const mapMaquinas = {};
+            dados.forEach(d => {
+                mapMaquinas[d.maquina] = (mapMaquinas[d.maquina] || 0) + 1;
+            });
+            let maqCritica = "-";
+            let maxMaq = 0;
+            for(let mq in mapMaquinas) {
+                if(mapMaquinas[mq] > maxMaq) {
+                    maxMaq = mapMaquinas[mq];
+                    maqCritica = "Máquina " + mq;
+                }
+            }
+            document.getElementById('kpiMaquinaCritica').textContent = maqCritica;
+            document.getElementById('kpiMaquinaSub').textContent = maxMaq + " ocorrências";
+        }
+
+        function renderizarEvolucaoMensal(dados) {
+            const container = document.getElementById('containerEvolucaoMensal');
+            container.innerHTML = '';
+            const mesesOrdem = ["Março", "Abril", "Maio", "Junho", "Julho", "Agosto"];
+            
+            const maxVal = Math.max(...mesesOrdem.map(m => dados.filter(d => d.mes === m).length), 1);
+
+            mesesOrdem.forEach(mes => {
+                const dadosMes = dados.filter(d => d.mes === mes);
+                const totalMes = dadosMes.length;
+                const colGroup = document.createElement('div');
+                colGroup.style.cssText = "display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 60px; height: 100%; justify-content: flex-end;";
+
+                const barWrap = document.createElement('div');
+                barWrap.style.cssText = "display: flex; align-items: flex-end; gap: 3px; height: 180px; width: 100%; justify-content: center; border-bottom: 2px solid #e4e4e7; padding-bottom: 4px;";
+
+                const cores = { 'A': '#0284c7', 'B': '#059669', 'C': '#d97706', 'D': '#dc2626' };
+
+                ['A', 'B', 'C', 'D'].forEach(eq => {
+                    const qtdEq = dadosMes.filter(d => d.equipe === eq).length;
+                    const alturaPx = maxVal > 0 ? (qtdEq / maxVal) * 140 : 0;
+                    
+                    const subBar = document.createElement('div');
+                    subBar.style.cssText = `width: 10px; height: ${Math.max(alturaPx, 4)}px; background: ${cores[eq]}; border-radius: 3px 3px 0 0; position: relative; cursor: pointer; transition: height 0.3s;`;
+                    subBar.title = `Mês: ${mes} | Equipe ${eq}: ${qtdEq}`;
+                    barWrap.appendChild(subBar);
+                });
+
+                const labelMes = document.createElement('span');
+                labelMes.style.cssText = "font-size: 11px; font-weight: 700; color: #52525b; margin-top: 8px;";
+                labelMes.textContent = mes;
+
+                const labelTotal = document.createElement('span');
+                labelTotal.style.cssText = "font-size: 10px; font-weight: 600; color: #71717a;";
+                labelTotal.textContent = `(${total})`;
+
+                colGroup.appendChild(barWrap);
+                colGroup.appendChild(labelMes);
+                colGroup.appendChild(labelTotal);
+                container.appendChild(colGroup);
+            });
+        }
+
+        function renderizarPareto(dados) {
+            const mapMotivos = {};
+            dados.forEach(d => {
+                const m = d.motivoPadronizado || "Outros";
+                mapMotivos[m] = (mapMotivos[m] || 0) + 1;
+            });
+
+            const ordenados = Object.entries(mapMotivos).sort((a,b) => b[1] - a[1]).slice(0, 8);
+            const labels = ordenados.map(o => o.name || o[0]);
+            const valores = ordenados.map(o => o[1]);
+
+            const totalGeral = valores.reduce((a,b) => a + b, 0) || 1;
+            let acumulado = 0;
+            const percentuaisAcumulados = valores.map(v => {
+                acumulado += v;
+                return parseFloat(((acumulado / totalGeral) * 100).toFixed(1));
+            });
+
+            const ctx = document.getElementById('chartPareto').getContext('2d');
+            if(chartParetoInstance) chartParetoInstance.destroy();
+
+            chartParetoInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Frequência',
+                            data: valores,
+                            backgroundColor: '#059669',
+                            borderRadius: 6,
+                            order: 2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '% Acumulado',
+                            data: percentuaisAcumulados,
+                            type: 'line',
+                            borderColor: '#d97706',
+                            backgroundColor: '#d97706',
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            order: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        datalabels: {
+                            color: '#18181b',
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (value, ctx) => {
+                                if(ctx.dataset.yAxisID === 'y1') return value + '%';
+                                return value;
+                            },
+                            anchor: 'end',
+                            align: 'top'
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Número de Ocorrências' } },
+                        y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Acumulado (%)' } },
+                        x: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function renderizarVM(dados) {
+            const mapVM = {};
+            dados.forEach(d => {
+                const cd = (d.codigo || "VM3").toUpperCase();
+                mapVM[cd] = (mapVM[cd] || 0) + 1;
+            });
+
+            const labels = Object.keys(mapVM);
+            const valores = Object.values(mapVM);
+
+            const ctx = document.getElementById('chartVM').getContext('2d');
+            if(chartVMInstance) chartVMInstance.destroy();
+
+            chartVMInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['Sem Registros'],
+                    datasets: [{
+                        label: 'Ocorrências por Tipo de Desvio',
+                        data: valores.length ? valores : [0],
+                        backgroundColor: '#0284c7',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#18181b',
+                            font: { weight: 'bold', size: 12 },
+                            anchor: 'end',
+                            align: 'top'
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderizarTabela(dados) {
+            const tbody = document.getElementById('tabelaCorpo');
+            tbody.innerHTML = '';
+            document.getElementById('contadorRegistros').textContent = `Exibindo ${dados.length} registros`;
+
+            if(dados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="empty-state">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
+                return;
+            }
+
+            dados.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${d.data || '-'}</td>
+                    <td>${d.mes || '-'}</td>
+                    <td><span class="badge-equipe">Eq. ${d.equipe || '-'}</span></td>
+                    <td>${d.lider || '-'}</td>
+                    <td><span class="badge-maq">Máq. ${d.maquina || '-'}</span></td>
+                    <td>${d.serie || '-'}</td>
+                    <td><strong>${d.corrida || '-'}</strong></td>
+                    <td>${d.material || '-'}</td>
+                    <td>${d.placa || '-'}</td>
+                    <td><span class="badge-codigo">${d.codigo || '-'}</span></td>
+                    <td><strong>${d.motivoPadronizado || '-'}</strong></td>
+                    <td title="${d.motivo || ''}">${d.motivo || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function gerarPDF() {
+            const elemento = document.getElementById('dashboardCompletoPDF');
+            const opt = {
+                margin:       10,
+                filename:     'Dashboard_Usiminas_Qualidade.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().from(elemento).set(opt).save();
+        }
+
+        window.onload = function() {
+            popularFiltroMotivos(baseDados);
+            aplicarFiltrosGlobais();
+        };
     </script>
 </body>
 </html>
