@@ -51,6 +51,12 @@
         .exec-title span { font-size: 12px; color: #a1a1aa; font-weight: 500; text-transform: uppercase; }
         
         .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .btn-upload {
+            background: var(--vp-accent); color: white; border: none; padding: 10px 16px; border-radius: var(--radius-md);
+            font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s;
+        }
+        .btn-upload:hover { background: #047857; }
+
         .btn-pdf {
             background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: var(--radius-md);
             font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s;
@@ -122,9 +128,7 @@
         .kpi-value { font-size: 28px; font-weight: 800; color: var(--vp-primary); margin-bottom: 4px; letter-spacing: -0.5px; }
         .kpi-footer { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
-        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px; }
-        @media(max-width: 1200px) { .analytics-grid { grid-template-columns: 1fr; } }
-
+        .analytics-grid { display: grid; grid-template-columns: 1fr; gap: 28px; margin-bottom: 28px; }
         .analytics-box { background: var(--card-bg); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-exec); border: 1px solid var(--border-subtle); }
         .box-title { font-size: 16px; font-weight: 800; color: var(--vp-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
         .box-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; }
@@ -177,6 +181,10 @@
                 </div>
             </div>
             <div class="header-actions">
+                <label class="btn-upload">
+                    <i class="fa-solid fa-file-excel"></i> Carregar Excel
+                    <input type="file" id="inputExcel" accept=".xlsx, .xls" style="display: none;" onchange="carregarExcelExterno(event)">
+                </label>
                 <button class="btn-pdf" onclick="gerarPDF()">
                     <i class="fa-solid fa-file-pdf"></i> Exportar PDF
                 </button>
@@ -213,7 +221,7 @@
                 <div class="filter-group">
                     <label><i class="fa-solid fa-industry"></i> Máquina</label>
                     <select id="filtroMaquina" onchange="aplicarFiltrosGlobais()">
-                        <option value="TODAS">Todas as Máquinas</option>
+                        <option value="TODOS">Todas as Máquinas</option>
                         <option value="1">Máquina 1</option>
                         <option value="2">Máquina 2</option>
                         <option value="3">Máquina 3</option>
@@ -223,7 +231,7 @@
                 <div class="filter-group">
                     <label><i class="fa-solid fa-calendar-days"></i> Mês</label>
                     <select id="filtroMes" onchange="aplicarFiltrosGlobais()">
-                        <option value="TODOS">Todos os Meses (Março a Agosto)</option>
+                        <option value="TODOS">Todos os Meses</option>
                         <option value="Março">Março</option>
                         <option value="Abril">Abril</option>
                         <option value="Maio">Maio</option>
@@ -287,9 +295,11 @@
 
             <div class="evolucao-card">
                 <div class="box-title"><i class="fa-solid fa-chart-column" style="color: var(--vp-accent);"></i> Evolução Mensal do Volume de Quedas por Equipe</div>
-                <div class="box-desc">Comparativo mensal com distribuição por equipe</div>
-                <div id="containerEvolucaoMensal" style="display: flex; gap: 24px; align-items: flex-end; margin-top: 24px; min-height: 250px; overflow-x: auto; padding-bottom: 14px;"></div>
-                <div class="legenda-equipes">
+                <div class="box-desc">Comparativo mensal segmentado por turno com distribuição por equipe</div>
+                <div style="position: relative; height: 280px; width: 100%; margin-top: 10px;">
+                    <canvas id="chartEvolucaoMensal"></canvas>
+                </div>
+                <div class="legenda-equipes" style="margin-top: 16px;">
                     <div class="legenda-item"><div class="cor-legenda" style="background: #0284c7;"></div> Equipe A</div>
                     <div class="legenda-item"><div class="cor-legenda" style="background: #059669;"></div> Equipe B</div>
                     <div class="legenda-item"><div class="cor-legenda" style="background: #d97706;"></div> Equipe C</div>
@@ -298,16 +308,16 @@
             </div>
 
             <div class="analytics-grid">
-                <div class="analytics-box" style="grid-column: span 2;">
+                <div class="analytics-box">
                     <div class="box-title"><i class="fa-solid fa-chart-line" style="color: var(--vp-accent);"></i> Gráfico de Pareto • Top 8 Principais Motivos (Frequência & % Acumulado)</div>
                     <div class="box-desc">Análise de Pareto profissional com valores visíveis nas colunas e linha de acúmulo percentual</div>
-                    <div style="position: relative; height: 380px; width: 100%;">
+                    <div style="position: relative; height: 280px; width: 100%;">
                         <canvas id="chartPareto"></canvas>
                     </div>
                 </div>
 
-                <div class="analytics-box" style="grid-column: span 2;">
-                    <div class="box-title"><i class="fa-solid fa-chart-bar" style="color: var(--info);"></i> Distribuição por Tipo de VM (VM1, VM2, VM3...)</div>
+                <div class="analytics-box">
+                    <div class="box-title"><i class="fa-solid fa-chart-bar" style="color: var(--info);"></i> Distribuição por Tipo de VM (Ordenado do Maior para o Menor)</div>
                     <div class="box-desc">Volume detalhado de ocorrências por código de desvio VM</div>
                     <div style="position: relative; height: 280px; width: 100%;">
                         <canvas id="chartVM"></canvas>
@@ -319,7 +329,7 @@
                 <div class="panel-header">
                     <div>
                         <h3><i class="fa-solid fa-table-cells"></i> Matriz Detalhada Gerencial</h3>
-                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Rastreabilidade completa de todas as ocorrências (Ordem Decrescente).</p>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Rastreabilidade completa de todas as ocorrências (Ordem Decrescente por Data).</p>
                     </div>
                     <span id="contadorRegistros" style="font-size: 12px; font-weight: 700; background: #e4e4e7; padding: 6px 14px; border-radius: 20px; color: #27272a;">Exibindo 0 registros</span>
                 </div>
@@ -365,64 +375,124 @@
                 "codigo": "RXL",
                 "motivo": "RXL, porque não fez ajuste de molde, devido temperatura alta no distribuidor. Máquina: 02 Não houve anormalidade.",
                 "motivoPadronizado": "Ajuste de Molde"
-            },
-            {
-                "data": "13/03/2026",
-                "mes": "Março",
-                "equipe": "A",
-                "lider": "Plinio",
-                "maquina": "4",
-                "serie": "8527",
-                "corrida": "172264",
-                "material": "AS 14 86",
-                "placa": "221 - 231",
-                "codigo": "VM3",
-                "motivo": "VM - atraso de convertedor (0,6).",
-                "motivoPadronizado": "Atraso do Convertedor"
-            },
-            {
-                "data": "13/03/2026",
-                "mes": "Março",
-                "equipe": "A",
-                "lider": "Plinio",
-                "maquina": "4",
-                "serie": "8527",
-                "corrida": "370715",
-                "material": "AS 14 86",
-                "placa": "211",
-                "codigo": "VM3",
-                "motivo": "VM - atraso de convertedor (0,6).",
-                "motivoPadronizado": "Atraso do Convertedor"
-            },
-            {
-                "data": "14/03/2026",
-                "mes": "Março",
-                "equipe": "A",
-                "lider": "Paulo Roberto",
-                "maquina": "1",
-                "serie": "28193",
-                "corrida": "574189",
-                "material": "AS 10 160",
-                "placa": "Hot geradas no turno:16",
-                "codigo": "RFL",
-                "motivo": "RFL, Ajuste do molde atrasado devido hidrogênio alto. Máquina 01 Não houve anormalidade.",
-                "motivoPadronizado": "Hidrogênio Alto"
-            },
-            {
-                "data": "14/03/26",
-                "mes": "Março",
-                "equipe": "D",
-                "lider": "Claudinei",
-                "maquina": "4",
-                "serie": "8527",
-                "corrida": "172270",
-                "material": "JYCH AS 14 66",
-                "placa": "221-232",
-                "codigo": "REG",
-                "motivo": "REG devido falha no sistema de programação solicitando passar placa para reserva",
-                "motivoPadronizado": "Outros"
             }
         ];
+
+        function padronizarMotivo(texto) {
+            if (!texto) return "Outros";
+            let t = String(texto).trim().toLowerCase();
+            
+            if (t.includes('forno panela') || t.includes('atraso forno') || t.includes('atrado forno')) {
+                return 'Atraso do Forno Panela';
+            }
+            if (t.includes('alarme de rompimento')) {
+                return 'Alarme de Rompimento';
+            }
+            if (t.includes('batida de tampão') || t.includes('batida de tampao')) {
+                return 'Batida de Tampão';
+            }
+            if (t.includes('atraso do rh') || t.includes('atraso rh') || t.includes('attraso no rh') || t.includes('atraso no rh')) {
+                return 'Atraso do RH';
+            }
+            if (t.includes('nitrogênio') || t.includes('nitrogenio')) {
+                return 'Nitrogênio Alto';
+            }
+            if (t.includes('obstrução da válvula') || t.includes('obstrução de vávula')) {
+                return 'Obstrução Da Válvula Submersa';
+            }
+            if (t.includes('marcando face b') || t.includes('face b marcando')) {
+                return 'Marcando Face B';
+            }
+            if (t.includes('marcando face a') || t.includes('face a marcando')) {
+                return 'Marcando Face A';
+            }
+            if (t.includes('convertedor')) {
+                return 'Atraso do Convertedor';
+            }
+            if (t.includes('distribuidor')) {
+                return 'Troca de Distribuidor';
+            }
+            if (t.includes('ajuste de molde')) {
+                return 'Ajuste de Molde';
+            }
+            if (t.includes('desarme do scan')) {
+                return 'Desarme do Scan';
+            }
+
+            let original = String(texto).trim();
+            return original.charAt(0).toUpperCase() + original.slice(1);
+        }
+
+        function obterMesPorData(dataStr) {
+            if (!dataStr || typeof dataStr !== 'string') return "Março";
+            const partes = dataStr.split('/');
+            if (partes.length < 2) return "Março";
+            const mesNum = parseInt(partes[1], 10);
+            const meses = {
+                1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril",
+                5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto",
+                9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
+            };
+            return meses[mesNum] || "Março";
+        }
+
+        function converterDataParaOrdem(dataStr) {
+            if (!dataStr || typeof dataStr !== 'string') return 0;
+            const partes = dataStr.split('/');
+            if (partes.length < 3) return 0;
+            return parseInt(partes[2] + partes[1].padStart(2, '0') + partes[0].padStart(2, '0'), 10);
+        }
+
+        function carregarExcelExterno(e) {
+            const arquivo = e.target.files[0];
+            if (!arquivo) return;
+            const leitor = new FileReader();
+            leitor.onload = function(evt) {
+                const dadosBinarios = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(dadosBinarios, { type: 'array' });
+                const primeiraAba = workbook.SheetNames[0];
+                const planilha = workbook.Sheets[primeiraAba];
+                const jsonDados = XLSX.utils.sheet_to_json(planilha);
+                
+                let novosDados = [];
+                jsonDados.forEach(r => {
+                    let dataStr = r['Data Relatório'] !== undefined ? String(r['Data Relatório']) : "";
+                    if(!isNaN(dataStr) && dataStr.trim() !== "") {
+                        let dObj = new Date((parseFloat(dataStr) - (25567 + 2)) * 86400 * 1000);
+                        let dia = String(dObj.getUTCDate()).padStart(2, '0');
+                        let mesNum = String(dObj.getUTCMonth() + 1).padStart(2, '0');
+                        let ano = dObj.getUTCFullYear();
+                        dataStr = `${dia}/${mesNum}/${ano}`;
+                    }
+
+                    let motivoRaw = r['Motivo Padronizado'] || "Outros";
+                    let motivoTratado = padronizarMotivo(motivoRaw);
+
+                    novosDados.push({
+                        data: dataStr || "-",
+                        mes: obterMesPorData(dataStr),
+                        equipe: String(r['Letra'] || "-").trim(),
+                        lider: String(r['Líder'] || "-").trim(),
+                        maquina: String(r['Máquina'] || "-").replace(/\D/g, '') || String(r['Máquina'] || "-"),
+                        serie: String(r['Série'] || "-").trim(),
+                        corrida: String(r['Corrida'] || "-").trim(),
+                        material: String(r['Material'] || "-").trim(),
+                        placa: String(r['Placas'] || "-").trim(),
+                        codigo: String(r['Codigo_Desvio'] || "-").trim(),
+                        motivoPadronizado: motivoTratado,
+                        motivo: String(r['Motivo / Justificativa'] || "-").trim()
+                    });
+                });
+
+                if(novosDados.length > 0) {
+                    baseDados = novosDados;
+                    popularFiltroMotivos(baseDados);
+                    aplicarFiltrosGlobais();
+                    alert(`Sucesso! ${baseDados.length} registros oficiais carregados, agrupados e ordenados.`);
+                }
+            };
+            leitor.readAsArrayBuffer(arquivo);
+        }
 
         let aciariaFiltroAtual = 'TODAS';
 
@@ -464,6 +534,7 @@
             });
         }
 
+        let chartEvolucaoInstance = null;
         let chartParetoInstance = null;
         let chartVMInstance = null;
 
@@ -498,9 +569,11 @@
                 return true;
             });
 
+            filtrados.sort((a, b) => converterDataParaOrdem(b.data) - converterDataParaOrdem(a.data));
+
             atualizarCardsEquipesResumo(baseDados);
             atualizarKPIs(filtrados);
-            renderizarEvolucaoMensal(filtrados);
+            renderizarEvolucaoMensal(baseDados);
             renderizarPareto(filtrados);
             renderizarVM(filtrados);
             renderizarTabela(filtrados);
@@ -551,45 +624,48 @@
         }
 
         function renderizarEvolucaoMensal(dados) {
-            const container = document.getElementById('containerEvolucaoMensal');
-            container.innerHTML = '';
             const mesesOrdem = ["Março", "Abril", "Maio", "Junho", "Julho", "Agosto"];
             
-            const maxVal = Math.max(...mesesOrdem.map(m => dados.filter(d => d.mes === m).length), 1);
+            const dadosA = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'A').length);
+            const dadosB = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'B').length);
+            const dadosC = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'C').length);
+            const dadosD = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'D').length);
 
-            mesesOrdem.forEach(mes => {
-                const dadosMes = dados.filter(d => d.mes === mes);
-                const totalMes = dadosMes.length;
-                const colGroup = document.createElement('div');
-                colGroup.style.cssText = "display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 60px; height: 100%; justify-content: flex-end;";
+            const maxVal = Math.max(...dadosA, ...dadosB, ...dadosC, ...dadosD, 10);
 
-                const barWrap = document.createElement('div');
-                barWrap.style.cssText = "display: flex; align-items: flex-end; gap: 3px; height: 180px; width: 100%; justify-content: center; border-bottom: 2px solid #e4e4e7; padding-bottom: 4px;";
+            const ctx = document.getElementById('chartEvolucaoMensal').getContext('2d');
+            if(chartEvolucaoInstance) chartEvolucaoInstance.destroy();
 
-                const cores = { 'A': '#0284c7', 'B': '#059669', 'C': '#d97706', 'D': '#dc2626' };
-
-                ['A', 'B', 'C', 'D'].forEach(eq => {
-                    const qtdEq = dadosMes.filter(d => d.equipe === eq).length;
-                    const alturaPx = maxVal > 0 ? (qtdEq / maxVal) * 140 : 0;
-                    
-                    const subBar = document.createElement('div');
-                    subBar.style.cssText = `width: 10px; height: ${Math.max(alturaPx, 4)}px; background: ${cores[eq]}; border-radius: 3px 3px 0 0; position: relative; cursor: pointer; transition: height 0.3s;`;
-                    subBar.title = `Mês: ${mes} | Equipe ${eq}: ${qtdEq}`;
-                    barWrap.appendChild(subBar);
-                });
-
-                const labelMes = document.createElement('span');
-                labelMes.style.cssText = "font-size: 11px; font-weight: 700; color: #52525b; margin-top: 8px;";
-                labelMes.textContent = mes;
-
-                const labelTotal = document.createElement('span');
-                labelTotal.style.cssText = "font-size: 10px; font-weight: 600; color: #71717a;";
-                labelTotal.textContent = `(${total})`;
-
-                colGroup.appendChild(barWrap);
-                colGroup.appendChild(labelMes);
-                colGroup.appendChild(labelTotal);
-                container.appendChild(colGroup);
+            chartEvolucaoInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: mesesOrdem,
+                    datasets: [
+                        { label: 'Equipe A', data: dadosA, backgroundColor: '#0284c7', borderRadius: 4, barThickness: 'flex', maxBarThickness: 28 },
+                        { label: 'Equipe B', data: dadosB, backgroundColor: '#059669', borderRadius: 4, barThickness: 'flex', maxBarThickness: 28 },
+                        { label: 'Equipe C', data: dadosC, backgroundColor: '#d97706', borderRadius: 4, barThickness: 'flex', maxBarThickness: 28 },
+                        { label: 'Equipe D', data: dadosD, backgroundColor: '#dc2626', borderRadius: 4, barThickness: 'flex', maxBarThickness: 28 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 20 } },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#18181b',
+                            font: { weight: 'bold', size: 10 },
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (val) => val > 0 ? val : ''
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: maxVal * 1.20, ticks: { font: { size: 11 } } },
+                        x: { ticks: { font: { size: 11, weight: 'bold' } }, grid: { display: false } }
+                    }
+                }
             });
         }
 
@@ -601,7 +677,7 @@
             });
 
             const ordenados = Object.entries(mapMotivos).sort((a,b) => b[1] - a[1]).slice(0, 8);
-            const labels = ordenados.map(o => o.name || o[0]);
+            const labels = ordenados.map(o => o[0]);
             const valores = ordenados.map(o => o[1]);
 
             const totalGeral = valores.reduce((a,b) => a + b, 0) || 1;
@@ -623,7 +699,7 @@
                             label: 'Frequência',
                             data: valores,
                             backgroundColor: '#059669',
-                            borderRadius: 6,
+                            borderRadius: 4,
                             order: 2,
                             yAxisID: 'y'
                         },
@@ -633,8 +709,8 @@
                             type: 'line',
                             borderColor: '#d97706',
                             backgroundColor: '#d97706',
-                            borderWidth: 3,
-                            pointRadius: 4,
+                            borderWidth: 2,
+                            pointRadius: 3,
                             order: 1,
                             yAxisID: 'y1'
                         }
@@ -643,11 +719,12 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { top: 20 } },
                     plugins: {
                         legend: { position: 'bottom' },
                         datalabels: {
                             color: '#18181b',
-                            font: { weight: 'bold', size: 11 },
+                            font: { weight: 'bold', size: 10 },
                             formatter: (value, ctx) => {
                                 if(ctx.dataset.yAxisID === 'y1') return value + '%';
                                 return value;
@@ -658,8 +735,8 @@
                     },
                     scales: {
                         y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Número de Ocorrências' } },
-                        y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Acumulado (%)' } },
-                        x: { ticks: { font: { size: 10 } } }
+                        y1: { beginAtZero: true, max: 105, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Acumulado (%)' } },
+                        x: { ticks: { font: { size: 10, weight: 'bold' } } }
                     }
                 }
             });
@@ -672,8 +749,10 @@
                 mapVM[cd] = (mapVM[cd] || 0) + 1;
             });
 
-            const labels = Object.keys(mapVM);
-            const valores = Object.values(mapVM);
+            const ordenados = Object.entries(mapVM).sort((a, b) => b[1] - a[1]);
+            const labels = ordenados.map(o => o[0]);
+            const valores = ordenados.map(o => o[1]);
+            const maxVal = Math.max(...valores, 10);
 
             const ctx = document.getElementById('chartVM').getContext('2d');
             if(chartVMInstance) chartVMInstance.destroy();
@@ -686,23 +765,34 @@
                         label: 'Ocorrências por Tipo de Desvio',
                         data: valores.length ? valores : [0],
                         backgroundColor: '#0284c7',
-                        borderRadius: 6
+                        borderRadius: 4,
+                        barThickness: 'flex',
+                        maxBarThickness: 30
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { top: 20 } },
                     plugins: {
                         legend: { display: false },
                         datalabels: {
                             color: '#18181b',
-                            font: { weight: 'bold', size: 12 },
+                            font: { weight: 'bold', size: 10 },
                             anchor: 'end',
                             align: 'top'
                         }
                     },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: { 
+                            beginAtZero: true, 
+                            max: maxVal * 1.20,
+                            ticks: { font: { size: 11 } }
+                        },
+                        x: { 
+                            ticks: { font: { size: 11, weight: 'bold' } },
+                            grid: { display: false }
+                        }
                     }
                 }
             });
