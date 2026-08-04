@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Chart.js DataLabels Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    <!-- SheetJS (Para importação opcional de nova planilha) -->
+    <!-- SheetJS (Para leitura de planilhas) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- html2pdf.js (Exportação PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -62,12 +62,6 @@
             font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s;
         }
         .btn-pdf:hover { background: #0369a1; }
-
-        .btn-reset {
-            background: #52525b; color: white; border: none; padding: 10px 16px; border-radius: var(--radius-md);
-            font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s;
-        }
-        .btn-reset:hover { background: #3f3f46; }
 
         .aciaria-bar {
             background: var(--card-bg); border-radius: var(--radius-lg); padding: 16px 28px; margin-bottom: 24px;
@@ -134,7 +128,9 @@
         .kpi-value { font-size: 28px; font-weight: 800; color: var(--vp-primary); margin-bottom: 4px; letter-spacing: -0.5px; }
         .kpi-footer { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
-        .analytics-grid { display: grid; grid-template-columns: 1fr; gap: 28px; margin-bottom: 28px; }
+        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px; }
+        @media(max-width: 1200px) { .analytics-grid { grid-template-columns: 1fr; } }
+
         .analytics-box { background: var(--card-bg); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-exec); border: 1px solid var(--border-subtle); }
         .box-title { font-size: 16px; font-weight: 800; color: var(--vp-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
         .box-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; }
@@ -154,25 +150,24 @@
         th { background-color: #fafafa; font-weight: 800; color: #52525b; text-transform: uppercase; font-size: 10px; letter-spacing: 0.6px; position: sticky; top: 0; z-index: 10; }
         tr:hover td { background-color: #fafafa; }
 
-        th:nth-child(1), td:nth-child(1) { width: 90px; }
-        th:nth-child(2), td:nth-child(2) { width: 75px; }
-        th:nth-child(3), td:nth-child(3) { width: 85px; }
-        th:nth-child(4), td:nth-child(4) { width: 100px; }
-        th:nth-child(5), td:nth-child(5) { width: 70px; }
-        th:nth-child(6), td:nth-child(6) { width: 75px; }
-        th:nth-child(7), td:nth-child(7) { width: 85px; }
-        th:nth-child(8), td:nth-child(8) { width: 110px; }
-        th:nth-child(9), td:nth-child(9) { width: 80px; }
-        th:nth-child(10), td:nth-child(10) { width: 85px; }
-        th:nth-child(11), td:nth-child(11) { width: 160px; }
-        th:nth-child(12), td:nth-child(12) { width: auto; }
+        th:nth-child(1), td:nth-child(1) { width: 90px; }    /* Data */
+        th:nth-child(2), td:nth-child(2) { width: 75px; }    /* Mês */
+        th:nth-child(3), td:nth-child(3) { width: 85px; }    /* Equipe */
+        th:nth-child(4), td:nth-child(4) { width: 100px; }   /* Líder */
+        th:nth-child(5), td:nth-child(5) { width: 70px; }    /* Máq */
+        th:nth-child(6), td:nth-child(6) { width: 75px; }    /* Série */
+        th:nth-child(7), td:nth-child(7) { width: 85px; }    /* Corrida */
+        th:nth-child(8), td:nth-child(8) { width: 110px; }   /* Material */
+        th:nth-child(9), td:nth-child(9) { width: 80px; }    /* Placa */
+        th:nth-child(10), td:nth-child(10) { width: 85px; }  /* Cód. Desvio */
+        th:nth-child(11), td:nth-child(11) { width: 160px; } /* Motivo Padronizado */
+        th:nth-child(12), td:nth-child(12) { width: auto; }  /* Motivo / Justificativa */
 
         .badge-maq { background: #ecfdf5; color: #047857; padding: 4px 8px; border-radius: 12px; font-weight: 700; font-size: 11px; display: inline-block; border: 1px solid #a7f3d0; }
         .badge-codigo { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 4px 8px; border-radius: var(--radius-md); font-weight: 800; font-size: 11px; display: inline-block; }
         .badge-equipe { background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 12px; font-weight: 800; font-size: 11px; border: 1px solid #c7d2fe; display: inline-block; }
         
         .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-weight: 600; }
-        .filtro-ativo-badge { background: #dbeafe; color: #1e40af; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -184,21 +179,17 @@
                 <div class="exec-logo">Usiminas</div>
                 <div class="exec-title">
                     <h1>Queda de Qualidade • Lingotamento</h1>
-                    <span>Análise Gerencial Executiva • Vice-Presidência</span>
+                    <span>Análise Gerencial Pareto Top 8 & Distribuição por VM</span>
                 </div>
             </div>
             <div class="header-actions">
-                <label class="btn-upload" title="Carregar nova versão de planilha se necessário">
-                    <i class="fa-solid fa-file-excel"></i> Atualizar Base Excel
-                    <input type="file" id="inputExcel" accept=".xlsx, .xls" style="display: none;" onchange="carregarExcelExterno(event)">
-                </label>
-                <button class="btn-reset" onclick="redefinirFiltros()">
-                    <i class="fa-solid fa-rotate-left"></i> Limpar Filtros
-                </button>
                 <button class="btn-pdf" onclick="gerarPDF()">
                     <i class="fa-solid fa-file-pdf"></i> Exportar PDF
                 </button>
-                
+                <label class="btn-upload" title="Carregar nova planilha Excel da rede">
+                    <i class="fa-solid fa-file-excel"></i> Carregar Excel
+                    <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv" style="display: none;" onchange="carregarExcelExterno(event)">
+                </label>
                 <div class="exec-badge-user">
                     Elaborado por: <strong>Fabricio Francioli Souza</strong>
                     <span>Unidade Técnica da Aciaria</span>
@@ -208,6 +199,7 @@
 
         <main class="main-container">
 
+            <!-- TECLAS DE FILTRO DE ACIARIA -->
             <div class="aciaria-bar">
                 <div class="aciaria-title"><i class="fa-solid fa-industry" style="color:var(--vp-accent);"></i> Filtrar por Aciaria:</div>
                 <div class="aciaria-btns">
@@ -217,6 +209,7 @@
                 </div>
             </div>
 
+            <!-- PAINEL DE FILTROS -->
             <div class="filters-panel">
                 <div class="filter-group">
                     <label><i class="fa-solid fa-users"></i> Equipe</label>
@@ -231,7 +224,7 @@
                 <div class="filter-group">
                     <label><i class="fa-solid fa-industry"></i> Máquina</label>
                     <select id="filtroMaquina" onchange="aplicarFiltrosGlobais()">
-                        <option value="TODOS">Todas as Máquinas</option>
+                        <option value="TODAS">Todas as Máquinas</option>
                         <option value="1">Máquina 1</option>
                         <option value="2">Máquina 2</option>
                         <option value="3">Máquina 3</option>
@@ -241,7 +234,7 @@
                 <div class="filter-group">
                     <label><i class="fa-solid fa-calendar-days"></i> Mês</label>
                     <select id="filtroMes" onchange="aplicarFiltrosGlobais()">
-                        <option value="TODOS">Todos os Meses</option>
+                        <option value="TODOS">Todos os Meses (Março a Agosto)</option>
                         <option value="Março">Março</option>
                         <option value="Abril">Abril</option>
                         <option value="Maio">Maio</option>
@@ -262,8 +255,7 @@
                 </div>
             </div>
 
-            <div id="painelFiltroAtivo" style="display: none;"></div>
-
+            <!-- DESTAQUE EXECUTIVO POR EQUIPE -->
             <div class="equipes-grid">
                 <div class="equipe-card eq-a" id="cardEqA" onclick="clicarCardEquipe('A')">
                     <div class="equipe-top"><span class="equipe-nome">Equipe A</span><span class="equipe-badge">Turno A</span></div>
@@ -287,6 +279,7 @@
                 </div>
             </div>
 
+            <!-- KPI CARDS -->
             <div class="kpi-grid">
                 <div class="kpi-card" style="border-left-color: var(--info);">
                     <div class="kpi-header"><span class="kpi-title">TOTAL DE OCORRÊNCIAS COM PLACAS</span><i class="fa-solid fa-database" style="color:var(--info);"></i></div>
@@ -305,13 +298,12 @@
                 </div>
             </div>
 
+            <!-- EVOLUÇÃO MENSAL POR EQUIPE -->
             <div class="evolucao-card">
-                <div class="box-title"><i class="fa-solid fa-chart-column" style="color: var(--vp-accent);"></i> Evolução Mensal do Volume de Quedas por Equipe (Proporção Executiva)</div>
-                <div class="box-desc">Comparativo mensal executivo segmentado por turno (Clique em uma barra para cruzar o filtro)</div>
-                <div style="position: relative; height: 260px; width: 100%; margin-top: 10px;">
-                    <canvas id="chartEvolucaoMensal"></canvas>
-                </div>
-                <div class="legenda-equipes" style="margin-top: 14px;">
+                <div class="box-title"><i class="fa-solid fa-chart-column" style="color: var(--vp-accent);"></i> Evolução Mensal do Volume de Quedas por Equipe</div>
+                <div class="box-desc">Comparativo mensal com distribuição por equipe</div>
+                <div id="containerEvolucaoMensal" style="display: flex; gap: 24px; align-items: flex-end; margin-top: 24px; min-height: 250px; overflow-x: auto; padding-bottom: 14px;"></div>
+                <div class="legenda-equipes">
                     <div class="legenda-item"><div class="cor-legenda" style="background: #0284c7;"></div> Equipe A</div>
                     <div class="legenda-item"><div class="cor-legenda" style="background: #059669;"></div> Equipe B</div>
                     <div class="legenda-item"><div class="cor-legenda" style="background: #d97706;"></div> Equipe C</div>
@@ -319,33 +311,37 @@
                 </div>
             </div>
 
+            <!-- SEÇÃO ANALÍTICA: GRÁFICO PARETO & DISTRIBUIÇÃO DE VM -->
             <div class="analytics-grid">
-                <div class="analytics-box">
-                    <div class="box-title"><i class="fa-solid fa-chart-line" style="color: var(--vp-accent);"></i> Gráfico de Pareto • Top 8 Principais Motivos (Clique na barra para cruzar)</div>
+                <!-- CAIXA 1: GRÁFICO PARETO -->
+                <div class="analytics-box" style="grid-column: span 2;">
+                    <div class="box-title"><i class="fa-solid fa-chart-line" style="color: var(--vp-accent);"></i> Gráfico de Pareto • Top 8 Principais Motivos (Frequência & % Acumulado)</div>
                     <div class="box-desc">Análise de Pareto profissional com valores visíveis nas colunas e linha de acúmulo percentual</div>
-                    <div style="position: relative; height: 260px; width: 100%;">
+                    <div style="position: relative; height: 380px; width: 100%;">
                         <canvas id="chartPareto"></canvas>
                     </div>
                 </div>
 
-                <div class="analytics-box">
-                    <div class="box-title"><i class="fa-solid fa-chart-bar" style="color: var(--info);"></i> Distribuição por Tipo de VM (Ordenado do Maior para o Menor)</div>
-                    <div class="box-desc">Volume detalhado de ocorrências por código de desvio VM (Clique para cruzar)</div>
-                    <div style="position: relative; height: 260px; width: 100%;">
+                <!-- CAIXA 2: DISTRIBUIÇÃO DE VM -->
+                <div class="analytics-box" style="grid-column: span 2;">
+                    <div class="box-title"><i class="fa-solid fa-chart-bar" style="color: var(--info);"></i> Distribuição por Tipo de VM (VM1, VM2, VM3...)</div>
+                    <div class="box-desc">Volume detalhado de ocorrências por código de desvio VM</div>
+                    <div style="position: relative; height: 280px; width: 100%;">
                         <canvas id="chartVM"></canvas>
                     </div>
                 </div>
             </div>
 
+            <!-- TABELA DETALHADA -->
             <div class="panel">
                 <div class="panel-header">
                     <div>
                         <h3><i class="fa-solid fa-table-cells"></i> Matriz Detalhada Gerencial</h3>
-                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Rastreabilidade completa de todas as ocorrências (Ordem Decrescente por Data).</p>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Rastreabilidade completa de todas as ocorrências (Ordem Decrescente).</p>
                     </div>
                     <span id="contadorRegistros" style="font-size: 12px; font-weight: 700; background: #e4e4e7; padding: 6px 14px; border-radius: 20px; color: #27272a;">Exibindo 0 registros</span>
                 </div>
-                <div style="overflow-x: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); max-height: 500px;">
+                <div style="overflow-x: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); max-height: 600px;">
                     <table>
                         <thead>
                             <tr>
@@ -374,437 +370,418 @@
         Chart.register(ChartDataLabels);
 
         let baseDados = [
-            {
-                "data": "13/03/2026",
-                "mes": "Março",
-                "equipe": "D",
-                "lider": "Luiz",
-                "maquina": "2",
-                "serie": "28193",
-                "corrida": "471473",
-                "material": "FVZ1 AA 000,15 0064",
-                "placa": "Hot geradas no turno:42",
-                "codigo": "RXL",
-                "motivo": "RXL, porque não fez ajuste de molde, devido temperatura alta no distribuidor. Máquina: 02 Não houve anormalidade.",
-                "motivoPadronizado": "Ajuste de Molde"
-            },
-            {
-                "data": "13/03/2026",
-                "mes": "Março",
-                "equipe": "A",
-                "lider": "Plinio",
-                "maquina": "4",
-                "serie": "8527",
-                "corrida": "172264",
-                "material": "AS 14 86",
-                "placa": "221 - 231",
-                "codigo": "VM3",
-                "motivo": "VM - atraso de convertedor (0,6).",
-                "motivoPadronizado": "Atraso do Convertedor"
-            }
+            {"data": "03/08/2026", "mes": "Agosto", "equipe": "A", "lider": "Diogo", "maquina": "1", "serie": "8614", "corrida": "272756", "material": "AS 1466", "placa": "231", "codigo": "VM3", "motivo": "VM3- Devido redução de velocidade para 0,60, atraso no forno panela", "motivoPadronizado": "Atraso do Forno Panela"},
+            {"data": "03/08/2026", "mes": "Agosto", "equipe": "A", "lider": "Diogo", "maquina": "4", "serie": "8613", "corrida": "174120", "material": "AS 10 160", "placa": "211-221-231", "codigo": "VM3", "motivo": "VM3 - Redução de velocidade 0,60 devido temperatura alta", "motivoPadronizado": "Temperatura Alta"},
+            {"data": "03/08/2026", "mes": "Agosto", "equipe": "C", "lider": "Talisson", "maquina": "1", "serie": "8612", "corrida": "372576", "material": "NSCC AA", "placa": "211", "codigo": "VM3", "motivo": "Obstrução de vávula submersa", "motivoPadronizado": "Obstrução da Válvula Submersa"},
+            {"data": "02/08/2026", "mes": "Agosto", "equipe": "A", "lider": "Deividy", "maquina": "1", "serie": "8611", "corrida": "474354", "material": "JYCH AS", "placa": "241", "codigo": "VM3", "motivo": "Estrangulamento da Válvula Gaveta", "motivoPadronizado": "Estrangulamento da Válvula Gaveta"},
+            {"data": "02/08/2026", "mes": "Agosto", "equipe": "B", "lider": "Eduardo", "maquina": "1", "serie": "28319", "corrida": "474344", "material": "MBA2 AA", "placa": "261", "codigo": "VM1", "motivo": "Atraso RH", "motivoPadronizado": "Atraso do RH"},
+            {"data": "01/08/2026", "mes": "Agosto", "equipe": "B", "lider": "Eduardo", "maquina": "1", "serie": "28319", "corrida": "474333", "material": "GXBC AS", "placa": "261", "codigo": "VM3", "motivo": "Temperatura Alta", "motivoPadronizado": "Temperatura Alta"},
+            {"data": "01/08/2026", "mes": "Agosto", "equipe": "C", "lider": "Talisson", "maquina": "1", "serie": "8612", "corrida": "174092", "material": "NSCC AA", "placa": "211", "codigo": "VM3", "motivo": "Obstrução de vávula submersa", "motivoPadronizado": "Obstrução da Válvula Submersa"},
+            {"data": "31/07/2026", "mes": "Julho", "equipe": "D", "lider": "Claudinei", "maquina": "1", "serie": "8612", "corrida": "272701", "material": "AACH AA 12", "placa": "211", "codigo": "VM3", "motivo": "Atraso do Forno Panela", "motivoPadronizado": "Atraso do Forno Panela"},
+            {"data": "31/07/2026", "mes": "Julho", "equipe": "C", "lider": "Talisson", "maquina": "1", "serie": "8612", "corrida": "372542", "material": "NSCC AA", "placa": "251", "codigo": "VM3", "motivo": "Nitrogênio Alto", "motivoPadronizado": "Nitrogênio Alto"},
+            {"data": "30/07/2026", "mes": "Julho", "equipe": "B", "lider": "Tiago", "maquina": "1", "serie": "8611", "corrida": "272696", "material": "JYCH AS", "placa": "21", "codigo": "VM3", "motivo": "Batida de Tampão", "motivoPadronizado": "Batida de Tampão"},
+            {"data": "29/07/2026", "mes": "Julho", "equipe": "A", "lider": "Carlos", "maquina": "2", "serie": "8610", "corrida": "272690", "material": "LQCD AA", "placa": "200", "codigo": "VM2", "motivo": "Alarme de Rompimento", "motivoPadronizado": "Alarme de Rompimento"},
+            {"data": "28/07/2026", "mes": "Julho", "equipe": "D", "lider": "Claudinei", "maquina": "4", "serie": "8609", "corrida": "174050", "material": "FVZ1", "placa": "190", "codigo": "VM1", "motivo": "MARCANDO FACE B", "motivoPadronizado": "Veio Marcando"},
+            {"data": "13/03/2026", "mes": "Março", "equipe": "D", "lider": "Luiz", "maquina": "2", "serie": "28193", "corrida": "471473", "material": "FVZ1 AA", "placa": "221", "codigo": "RXL", "motivo": "RXL, porque não fez ajuste de molde, devido temperatura alta.", "motivoPadronizado": "Ajuste de Molde"},
+            {"data": "13/03/2026", "mes": "Março", "equipe": "A", "lider": "Plinio", "maquina": "4", "serie": "8527", "corrida": "172264", "material": "AS 14 86", "placa": "221 - 231", "codigo": "VM3", "motivo": "VM - atraso de convertedor (0,6).", "motivoPadronizado": "Atraso do Convertedor"}
         ];
 
-        let crossFilter = { tipo: null, valor: null };
+        let filtroEquipeGrafico = 'TODOS';
+        let filtroMotivoGrafico = 'TODOS';
+        let filtroAciariaAtiva = 'TODAS';
+        let paretoChartInstance = null;
+        let vmChartInstance = null;
 
-        function padronizarMotivo(texto) {
-            if (!texto) return "Outros";
-            let t = String(texto).trim().toLowerCase();
-            
-            if (t.includes('forno panela') || t.includes('atraso forno') || t.includes('atrado forno')) {
-                return 'Atraso do Forno Panela';
-            }
-            if (t.includes('alarme de rompimento')) {
-                return 'Alarme de Rompimento';
-            }
-            if (t.includes('batida de tampão') || t.includes('batida de tampao')) {
-                return 'Batida de Tampão';
-            }
-            if (t.includes('atraso do rh') || t.includes('atraso rh') || t.includes('attraso no rh') || t.includes('atraso no rh')) {
-                return 'Atraso do RH';
-            }
-            if (t.includes('nitrogênio') || t.includes('nitrogenio')) {
-                return 'Nitrogênio Alto';
-            }
-            if (t.includes('obstrução da válvula') || t.includes('obstrução de vávula')) {
-                return 'Obstrução Da Válvula Submersa';
-            }
-            if (t.includes('marcando face b') || t.includes('face b marcando')) {
-                return 'Marcando Face B';
-            }
-            if (t.includes('marcando face a') || t.includes('face a marcando')) {
-                return 'Marcando Face A';
-            }
-            if (t.includes('convertedor')) {
-                return 'Atraso do Convertedor';
-            }
-            if (t.includes('distribuidor')) {
-                return 'Troca de Distribuidor';
-            }
-            if (t.includes('ajuste de molde')) {
-                return 'Ajuste de Molde';
-            }
-            if (t.includes('desarme do scan')) {
-                return 'Desarme do Scan';
-            }
-
-            let original = String(texto).trim();
-            return original.charAt(0).toUpperCase() + original.slice(1);
+        function salvarNoNavegador(dados, callback) {
+            const req = indexedDB.open("UsiminasLingotamentoDB", 16);
+            req.onupgradeneeded = (e) => {
+                let db = e.target.result;
+                if (!db.objectStoreNames.contains("registros")) {
+                    db.createObjectStore("registros", { keyPath: "id" });
+                }
+            };
+            req.onsuccess = (e) => {
+                let db = e.target.result;
+                let tx = db.transaction("registros", "readwrite");
+                tx.objectStore("registros").put({ id: "dadosAtuais", registros: dados });
+                tx.oncomplete = () => { if (callback) callback(); };
+            };
         }
 
-        function obterMesPorData(dataStr) {
-            if (!dataStr || typeof dataStr !== 'string') return "Março";
-            const partes = dataStr.split('/');
-            if (partes.length < 2) return "Março";
-            const mesNum = parseInt(partes[1], 10);
-            const meses = {
-                1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril",
-                5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto",
+        function carregarDoNavegador(callback) {
+            const req = indexedDB.open("UsiminasLingotamentoDB", 16);
+            req.onupgradeneeded = (e) => {
+                let db = e.target.result;
+                if (!db.objectStoreNames.contains("registros")) {
+                    db.createObjectStore("registros", { keyPath: "id" });
+                }
+            };
+            req.onsuccess = (e) => {
+                let db = e.target.result;
+                let tx = db.transaction("registros", "readonly");
+                let store = tx.objectStore("registros");
+                let query = store.get("dadosAtuais");
+                query.onsuccess = () => {
+                    if (query.result && query.result.registros && query.result.registros.length > 0) {
+                        callback(query.result.registros);
+                    } else {
+                        callback(null);
+                    }
+                };
+                query.onerror = () => callback(null);
+            };
+            req.onerror = () => callback(null);
+        }
+
+        function campoSeguro(valor) {
+            return valor === undefined || valor === null ? '' : String(valor).trim();
+        }
+
+        function formatarDataExcel(dtBruta) {
+            if (dtBruta === undefined || dtBruta === null || String(dtBruta).trim() === "") return "03/08/2026";
+            
+            if (dtBruta instanceof Date && !isNaN(dtBruta.getTime())) {
+                let dia = String(dtBruta.getUTCDate()).padStart(2, '0');
+                let mes = String(dtBruta.getUTCMonth() + 1).padStart(2, '0');
+                let ano = dtBruta.getUTCFullYear();
+                return `${dia}/${mes}/${ano}`;
+            }
+
+            if (!isNaN(dtBruta) && Number(dtBruta) > 30000) {
+                let dObj = new Date(Math.round((Number(dtBruta) - (25567 + 2)) * 86400 * 1000));
+                let dia = String(dObj.getUTCDate()).padStart(2, '0');
+                let mes = String(dObj.getUTCMonth() + 1).padStart(2, '0');
+                let ano = dObj.getUTCFullYear();
+                return `${dia}/${mes}/${ano}`;
+            }
+
+            let s = String(dtBruta).trim();
+            if (s.includes('T')) s = s.split('T')[0];
+
+            if (s.includes('-')) {
+                let p = s.split('-');
+                if (p.length === 3) {
+                    let ano = p[0].length === 4 ? p[0] : (p[2].length === 4 ? p[2] : '20' + p[2]);
+                    let mes = p[1].padStart(2, '0');
+                    let dia = (p[0].length === 4 ? p[2] : p[0]).padStart(2, '0');
+                    return `${dia}/${mes}/${ano}`;
+                }
+            } else if (s.includes('/')) {
+                let p = s.split('/');
+                if (p.length === 3) {
+                    let ano = p[2].length === 2 ? '20' + p[2] : p[2];
+                    return `${p[0].padStart(2, '0')}/${p[1].padStart(2, '0')}/${ano}`;
+                }
+            }
+            return s.substring(0, 10);
+        }
+
+        function parseData(strData) {
+            if (!strData) return new Date(2026, 0, 1);
+            let s = String(strData).trim();
+            if (s.includes('/')) {
+                let p = s.split('/');
+                if (p.length === 3) {
+                    let ano = p[2].length === 2 ? '20' + p[2] : p[2];
+                    let d = new Date(parseInt(ano), parseInt(p[1]) - 1, parseInt(p[0]));
+                    return isNaN(d.getTime()) ? new Date(2026, 0, 1) : d;
+                }
+            }
+            let d = new Date(s);
+            return isNaN(d.getTime()) ? new Date(2026, 0, 1) : d;
+        }
+
+        function extrairMes(dataStr) {
+            let dt = parseData(dataStr);
+            if (isNaN(dt.getTime())) return "Março";
+            let m = dt.getMonth() + 1;
+            const mesesMap = {
+                1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
+                5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto", 
                 9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
             };
-            return meses[mesNum] || "Março";
+            return mesesMap[m] || "Março";
         }
 
-        function converterDataParaOrdem(dataStr) {
-            if (!dataStr || typeof dataStr !== 'string') return 0;
-            const partes = dataStr.split('/');
-            if (partes.length < 3) return 0;
-            return parseInt(partes[2] + partes[1].padStart(2, '0') + partes[0].padStart(2, '0'), 10);
+        function padronizarMotivoRigido(motivoStr) {
+            if (!motivoStr || motivoStr === '-' || String(motivoStr).trim() === '') return "Outros";
+            let m = String(motivoStr).trim();
+            let mLower = m.toLowerCase();
+            let mUpper = m.toUpperCase();
+
+            if (mLower.includes("forno") && mLower.includes("panela")) return "Atraso do Forno Panela";
+            if (mLower.includes("nitrogênio") || mLower.includes("nitrogenio")) return "Nitrogênio Alto";
+            if (mLower.includes("batida") && (mLower.includes("tampão") || mLower.includes("tampao"))) return "Batida de Tampão";
+            if (mLower.includes("alarme") && mLower.includes("rompimento")) return "Alarme de Rompimento";
+            if (mUpper.includes("MARCANDO") || mUpper.includes("FACE") || mUpper.includes("MARC")) return "Veio Marcando";
+            if (mLower.includes("obstrução") && mLower.includes("válvula")) return "Obstrução da Válvula Submersa";
+            if (mLower.includes("rh")) return "Atraso do RH";
+            if (mLower.includes("desarme") && mLower.includes("scan")) return "Desarme do Scan";
+            if (mLower.includes("convertedor")) return "Atraso do Convertedor";
+            if (mLower.includes("casob") || mLower.includes("cas-ob")) return "Atraso no CAS-OB";
+            if (mLower.includes("ajuste") && mLower.includes("molde")) return "Ajuste de Molde";
+            if (mLower.includes("cascão") || mLower.includes("cascao")) return "Cascão na Panela";
+            if (mLower.includes("estrangulamento")) return "Estrangulamento da Válvula Gaveta";
+            if (mLower.includes("falha") && mLower.includes("corte")) return "Falha em Equipamento de Corte";
+            if (mLower.includes("intervenção") || mLower.includes("intervencao")) return "Intervenção no Molde";
+            if (mLower.includes("abertura") && mLower.includes("panela")) return "Não Abertura Instantânea da Panela";
+            if (mLower.includes("troca") && mLower.includes("distribuidor")) return "Troca de Distribuidor";
+            if (mLower.includes("baixa") && mLower.includes("tonelagem")) return "Baixa Tonelagem";
+            if (mLower.includes("refin")) return "Atraso Refino";
+            if (mLower.includes("quimica") || mLower.includes("química")) return "Composição Química";
+            if (mLower.includes("ponte") && mLower.includes("c1")) return "Desarme da Ponte C1";
+            if (mLower.includes("ponte rolante")) return "Problema com Ponte Rolante";
+            if (mLower.includes("zeragem")) return "Zeragem de Máquina";
+            if (mLower.includes("quebra") && mLower.includes("válvula")) return "Quebra de Válvula";
+            if (mLower.includes("variação") && mLower.includes("aço")) return "Variação no Aço";
+            if (mLower.includes("temperatura") && mLower.includes("alta")) return "Temperatura Alta";
+            if (mLower.includes("temperatura") && mLower.includes("baixa")) return "Temperatura Baixa";
+
+            let formatado = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+            return formatado;
         }
 
-        function carregarExcelExterno(e) {
-            const arquivo = e.target.files[0];
-            if (!arquivo) return;
-            const leitor = new FileReader();
-            leitor.onload = function(evt) {
-                const dadosBinarios = new Uint8Array(evt.target.result);
-                const workbook = XLSX.read(dadosBinarios, { type: 'array' });
-                const primeiraAba = workbook.SheetNames[0];
-                const planilha = workbook.Sheets[primeiraAba];
-                const jsonDados = XLSX.utils.sheet_to_json(planilha);
-                
-                let novosDados = [];
-                jsonDados.forEach(r => {
-                    let dataStr = r['Data Relatório'] !== undefined ? String(r['Data Relatório']) : "";
-                    if(!isNaN(dataStr) && dataStr.trim() !== "") {
-                        let dObj = new Date((parseFloat(dataStr) - (25567 + 2)) * 86400 * 1000);
-                        let dia = String(dObj.getUTCDate()).padStart(2, '0');
-                        let mesNum = String(dObj.getUTCMonth() + 1).padStart(2, '0');
-                        let ano = dObj.getUTCFullYear();
-                        dataStr = `${dia}/${mesNum}/${ano}`;
-                    }
-
-                    let motivoRaw = r['Motivo Padronizado'] || "Outros";
-                    let motivoTratado = padronizarMotivo(motivoRaw);
-
-                    novosDados.push({
-                        data: dataStr || "-",
-                        mes: obterMesPorData(dataStr),
-                        equipe: String(r['Letra'] || "-").trim(),
-                        lider: String(r['Líder'] || "-").trim(),
-                        maquina: String(r['Máquina'] || "-").replace(/\D/g, '') || String(r['Máquina'] || "-"),
-                        serie: String(r['Série'] || "-").trim(),
-                        corrida: String(r['Corrida'] || "-").trim(),
-                        material: String(r['Material'] || "-").trim(),
-                        placa: String(r['Placas'] || "-").trim(),
-                        codigo: String(r['Codigo_Desvio'] || "-").trim(),
-                        motivoPadronizado: motivoTratado,
-                        motivo: String(r['Motivo / Justificativa'] || "-").trim()
-                    });
-                });
-
-                if(novosDados.length > 0) {
-                    baseDados = novosDados;
-                    try {
-                        localStorage.setItem('usiminas_dados_cache', JSON.stringify(baseDados));
-                    } catch(err) {
-                        console.log("Storage cache warning:", err);
-                    }
-                    popularFiltroMotivos(baseDados);
-                    redefinirFiltros();
-                    alert(`Sucesso! ${baseDados.length} registros atualizados e salvos.`);
-                }
-            };
-            leitor.readAsArrayBuffer(arquivo);
+        function popularFiltroMotivos() {
+            let selectMotivo = document.getElementById('filtroMotivoSelect');
+            let valorAtual = selectMotivo.value;
+            let motivosUnicos = [...new Set(baseDados.map(item => item.motivoPadronizado))].sort();
+            
+            selectMotivo.innerHTML = `<option value="TODOS">Todos os Motivos</option>`;
+            motivosUnicos.forEach(m => {
+                let sel = m === valorAtual ? 'selected' : '';
+                selectMotivo.innerHTML += `<option value="${m}" ${sel}>${m}</option>`;
+            });
         }
-
-        let aciariaFiltroAtual = 'TODAS';
 
         function filtrarAciaria(tipo) {
-            aciariaFiltroAtual = tipo;
-            document.querySelectorAll('.btn-aciaria').forEach(b => b.classList.remove('ativo'));
-            if(tipo === 'TODAS') document.getElementById('btnAciariaTodas').classList.add('ativo');
-            if(tipo === '1') document.getElementById('btnAciaria1').classList.add('ativo');
-            if(tipo === '2') document.getElementById('btnAciaria2').classList.add('ativo');
+            filtroAciariaAtiva = tipo;
+            document.getElementById('btnAciariaTodas').classList.toggle('ativo', tipo === 'TODAS');
+            document.getElementById('btnAciaria1').classList.toggle('ativo', tipo === '1');
+            document.getElementById('btnAciaria2').classList.toggle('ativo', tipo === '2');
             aplicarFiltrosGlobais();
         }
 
-        let equipeSelecionadaCard = 'TODOS';
-        function clicarCardEquipe(eq) {
-            const card = document.getElementById('cardEq' + eq);
-            if(equipeSelecionadaCard === eq) {
-                equipeSelecionadaCard = 'TODOS';
-                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
+        function clicarCardEquipe(eqLetra) {
+            if (filtroEquipeGrafico === eqLetra) {
+                filtroEquipeGrafico = 'TODOS';
+                document.getElementById('filtroEquipe').value = 'TODOS';
             } else {
-                equipeSelecionadaCard = eq;
-                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
-                card.classList.add('ativa');
+                filtroEquipeGrafico = eqLetra;
+                document.getElementById('filtroEquipe').value = eqLetra;
             }
-            document.getElementById('filtroEquipe').value = equipeSelecionadaCard;
             aplicarFiltrosGlobais();
         }
-
-        function popularFiltroMotivos(dados) {
-            const select = document.getElementById('filtroMotivoSelect');
-            const valorAtual = select.value;
-            const motivosUnicos = [...new Set(dados.map(d => d.motivoPadronizado))].sort();
-            select.innerHTML = '<option value="TODOS">Todos os Motivos</option>';
-            motivosUnicos.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m;
-                opt.textContent = m;
-                if(m === valorAtual) opt.selected = true;
-                select.appendChild(opt);
-            });
-        }
-
-        function redefinirFiltros() {
-            document.getElementById('filtroEquipe').value = 'TODOS';
-            document.getElementById('filtroMaquina').value = 'TODOS';
-            document.getElementById('filtroMes').value = 'TODOS';
-            document.getElementById('filtroMotivoSelect').value = 'TODOS';
-            document.getElementById('filtroTexto').value = '';
-            equipeSelecionadaCard = 'TODOS';
-            crossFilter = { tipo: null, valor: null };
-            document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
-            aplicarFiltrosGlobais();
-        }
-
-        function atualizarBannerFiltroAtivo() {
-            const painel = document.getElementById('painelFiltroAtivo');
-            if(crossFilter.tipo && crossFilter.valor) {
-                painel.style.display = 'block';
-                let labelTipo = crossFilter.tipo === 'motivo' ? 'Motivo' : crossFilter.tipo === 'vm' ? 'Código VM' : crossFilter.tipo === 'mes' ? 'Mês' : 'Equipe';
-                painel.innerHTML = `<div class="filtro-ativo-badge"><i class="fa-solid fa-filter"></i> <span>Cross-Filter Ativo:</span> ${labelTipo}: <strong>${crossFilter.valor}</strong> <button onclick="redefinirFiltros()" style="background:none; border:none; color:#1e40af; cursor:pointer; font-weight:bold; margin-left:8px; text-decoration:underline;">[Limpar Destaque]</button></div>`;
-            } else {
-                painel.style.display = 'none';
-            }
-        }
-
-        let chartEvolucaoInstance = null;
-        let chartParetoInstance = null;
-        let chartVMInstance = null;
 
         function aplicarFiltrosGlobais() {
-            const eq = document.getElementById('filtroEquipe').value;
-            const maq = document.getElementById('filtroMaquina').value;
-            const mes = document.getElementById('filtroMes').value;
-            const motivo = document.getElementById('filtroMotivoSelect').value;
-            const texto = document.getElementById('filtroTexto').value.toLowerCase();
+            let fEquipe = document.getElementById('filtroEquipe').value;
+            let fMaquina = document.getElementById('filtroMaquina').value;
+            let fMes = document.getElementById('filtroMes').value;
+            let fMotivoSelect = document.getElementById('filtroMotivoSelect').value;
+            let fTexto = document.getElementById('filtroTexto').value.toLowerCase().trim();
 
-            if(eq !== equipeSelecionadaCard && eq !== 'TODOS') {
-                equipeSelecionadaCard = eq;
-                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
-                const card = document.getElementById('cardEq' + eq);
-                if(card) card.classList.add('ativa');
-            } else if(eq === 'TODOS' && equipeSelecionadaCard !== 'TODOS') {
-                equipeSelecionadaCard = 'TODOS';
-                document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
-            }
+            filtroEquipeGrafico = fEquipe;
+            filtroMotivoGrafico = fMotivoSelect;
 
-            let baseFiltrada = baseDados.filter(d => {
-                if(aciariaFiltroAtual === '1' && d.maquina !== '4') return false;
-                if(aciariaFiltroAtual === '2' && d.maquina === '4') return false;
-                if(eq !== 'TODOS' && d.equipe !== eq) return false;
-                if(maq !== 'TODOS' && d.maquina !== maq) return false;
-                if(mes !== 'TODOS' && d.mes !== mes) return false;
-                if(motivo !== 'TODOS' && d.motivoPadronizado !== motivo) return false;
+            let dadosFiltrados = baseDados.filter(item => {
+                if (fEquipe !== 'TODOS' && String(item.equipe).toUpperCase() !== fEquipe) return false;
+                if (fMes !== 'TODOS' && item.mes !== fMes) return false;
+                if (fMotivoSelect !== 'TODOS' && String(item.motivoPadronizado).trim() !== fMotivoSelect) return false;
 
-                if(texto) {
-                    const blob = (d.motivo + " " + d.lider + " " + d.corrida + " " + d.material).toLowerCase();
-                    if(!blob.includes(texto)) return false;
+                let mqStr = String(item.maquina).replace(/\D/g, '').replace(/^0+/, '') || "1";
+                if (fMaquina !== 'TODAS' && mqStr !== fMaquina) return false;
+
+                if (filtroAciariaAtiva === '1') {
+                    if (mqStr !== '4') return false;
+                } else if (filtroAciariaAtiva === '2') {
+                    if (mqStr !== '1' && mqStr !== '2' && mqStr !== '3') return false;
+                }
+                
+                if (fTexto !== '') {
+                    let matchTexto = campoSeguro(item.motivo).toLowerCase().includes(fTexto) || 
+                                     campoSeguro(item.lider).toLowerCase().includes(fTexto) || 
+                                     campoSeguro(item.corrida).toLowerCase().includes(fTexto) ||
+                                     campoSeguro(item.motivoPadronizado).toLowerCase().includes(fTexto);
+                    if (!matchTexto) return false;
                 }
                 return true;
             });
 
-            let filtradosTabela = baseFiltrada.filter(d => {
-                if(crossFilter.tipo === 'motivo' && d.motivoPadronizado !== crossFilter.valor) return false;
-                if(crossFilter.tipo === 'vm' && (d.codigo || "").toUpperCase() !== crossFilter.valor.toUpperCase()) return false;
-                if(crossFilter.tipo === 'mes' && d.mes !== crossFilter.valor) return false;
-                if(crossFilter.tipo === 'equipe' && d.equipe !== crossFilter.valor) return false;
-                return true;
-            });
-
-            filtradosTabela.sort((a, b) => converterDataParaOrdem(b.data) - converterDataParaOrdem(a.data));
-
-            atualizarCardsEquipesResumo(baseFiltrada);
-            atualizarKPIs(filtradosTabela);
-            renderizarEvolucaoMensal(baseFiltrada);
-            renderizarPareto(baseFiltrada);
-            renderizarVM(baseFiltrada);
-            renderizarTabela(filtradosTabela);
-            atualizarBannerFiltroAtivo();
-        }
-
-        function atualizarCardsEquipesResumo(dados) {
-            const total = dados.length || 1;
-            ['A', 'B', 'C', 'D'].forEach(eq => {
-                const qtd = dados.filter(d => d.equipe === eq).length;
-                const pct = ((qtd / total) * 100).toFixed(1) + '%';
-                document.getElementById('eq' + eq + 'Qtd').textContent = qtd;
-                document.getElementById('eq' + eq + 'Pct').textContent = pct;
-            });
-        }
-
-        function atualizarKPIs(dados) {
-            document.getElementById('kpiTotal').textContent = dados.length;
-
-            const mapMotivos = {};
-            dados.forEach(d => {
-                mapMotivos[d.motivoPadronizado] = (mapMotivos[d.motivoPadronizado] || 0) + 1;
-            });
-            let principalMotivo = "-";
-            let maxMotivo = 0;
-            for(let m in mapMotivos) {
-                if(mapMotivos[m] > maxMotivo) {
-                    maxMotivo = mapMotivos[m];
-                    principalMotivo = m;
-                }
+            document.querySelectorAll('.equipe-card').forEach(c => c.classList.remove('ativa'));
+            if (fEquipe !== 'TODOS') {
+                let cardEl = document.getElementById(`cardEq${fEquipe}`);
+                if (cardEl) cardEl.classList.add('ativa');
             }
-            document.getElementById('kpiPrincipalCodigo').textContent = principalMotivo;
-            document.getElementById('kpiPrincipalSub').textContent = maxMotivo + " ocorrências registradas";
 
-            const mapMaquinas = {};
-            dados.forEach(d => {
-                mapMaquinas[d.maquina] = (mapMaquinas[d.maquina] || 0) + 1;
-            });
-            let maqCritica = "-";
-            let maxMaq = 0;
-            for(let mq in mapMaquinas) {
-                if(mapMaquinas[mq] > maxMaq) {
-                    maxMaq = mapMaquinas[mq];
-                    maqCritica = "Máquina " + mq;
-                }
-            }
-            document.getElementById('kpiMaquinaCritica').textContent = maqCritica;
-            document.getElementById('kpiMaquinaSub').textContent = maxMaq + " ocorrências";
+            renderizarDashboard(dadosFiltrados);
         }
 
-        function renderizarEvolucaoMensal(dados) {
-            const mesesOrdem = ["Março", "Abril", "Maio", "Junho", "Julho", "Agosto"];
+        function atualizarCardsEquipes(dadosFiltrados) {
+            let contEquipes = { "A": 0, "B": 0, "C": 0, "D": 0 };
+            dadosFiltrados.forEach(d => {
+                let eq = String(d.equipe).trim().toUpperCase();
+                if (contEquipes[eq] !== undefined) contEquipes[eq]++;
+            });
             
-            const dadosA = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'A').length);
-            const dadosB = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'B').length);
-            const dadosC = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'C').length);
-            const dadosD = mesesOrdem.map(m => dados.filter(d => d.mes === m && d.equipe === 'D').length);
+            let totalFiltrado = dadosFiltrados.length > 0 ? dadosFiltrados.length : 1;
 
-            const maxVal = Math.max(...dadosA, ...dadosB, ...dadosC, ...dadosD, 10);
+            document.getElementById('eqAQtd').innerText = contEquipes["A"];
+            document.getElementById('eqAPct').innerText = `${((contEquipes["A"] / totalFiltrado) * 100).toFixed(1)}%`;
 
-            const corA = (crossFilter.tipo === 'equipe' && crossFilter.valor !== 'A') ? 'rgba(2, 132, 199, 0.2)' : '#0284c7';
-            const corB = (crossFilter.tipo === 'equipe' && crossFilter.valor !== 'B') ? 'rgba(5, 150, 105, 0.2)' : '#059669';
-            const corC = (crossFilter.tipo === 'equipe' && crossFilter.valor !== 'C') ? 'rgba(217, 119, 6, 0.2)' : '#d97706';
-            const corD = (crossFilter.tipo === 'equipe' && crossFilter.valor !== 'D') ? 'rgba(220, 38, 38, 0.2)' : '#dc2626';
+            document.getElementById('eqBQtd').innerText = contEquipes["B"];
+            document.getElementById('eqBPct').innerText = `${((contEquipes["B"] / totalFiltrado) * 100).toFixed(1)}%`;
 
-            const ctx = document.getElementById('chartEvolucaoMensal').getContext('2d');
-            if(chartEvolucaoInstance) chartEvolucaoInstance.destroy();
+            document.getElementById('eqCQtd').innerText = contEquipes["C"];
+            document.getElementById('eqCPct').innerText = `${((contEquipes["C"] / totalFiltrado) * 100).toFixed(1)}%`;
 
-            chartEvolucaoInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: mesesOrdem,
-                    datasets: [
-                        { label: 'Equipe A', data: dadosA, backgroundColor: corA, borderRadius: 4, barPercentage: 0.75, categoryPercentage: 0.75 },
-                        { label: 'Equipe B', data: dadosB, backgroundColor: corB, borderRadius: 4, barPercentage: 0.75, categoryPercentage: 0.75 },
-                        { label: 'Equipe C', data: dadosC, backgroundColor: corC, borderRadius: 4, barPercentage: 0.75, categoryPercentage: 0.75 },
-                        { label: 'Equipe D', data: dadosD, backgroundColor: corD, borderRadius: 4, barPercentage: 0.75, categoryPercentage: 0.75 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 18 } },
-                    onClick: (evt, elements) => {
-                        if(elements.length > 0) {
-                            const datasetIndex = elements[0].datasetIndex;
-                            const equipes = ['A', 'B', 'C', 'D'];
-                            const equipeClicada = equipes[datasetIndex];
-
-                            if(crossFilter.tipo === 'equipe' && crossFilter.valor === equipeClicada) {
-                                crossFilter = { tipo: null, valor: null };
-                            } else {
-                                crossFilter = { tipo: 'equipe', valor: equipeClicada };
-                            }
-                            aplicarFiltrosGlobais();
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            color: '#18181b',
-                            font: { weight: 'bold', size: 10 },
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: (val) => val > 0 ? val : ''
-                        }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, max: maxVal * 1.20, ticks: { font: { size: 10 } } },
-                        x: { ticks: { font: { size: 11, weight: 'bold' } }, grid: { display: false } }
-                    }
-                }
-            });
+            document.getElementById('eqDQtd').innerText = contEquipes["D"];
+            document.getElementById('eqDPct').innerText = `${((contEquipes["D"] / totalFiltrado) * 100).toFixed(1)}%`;
         }
 
-        function renderizarPareto(dados) {
-            const mapMotivos = {};
+        function renderizarDashboard(dados) {
+            const corpo = document.getElementById('tabelaCorpo');
+            corpo.innerHTML = '';
+            
+            document.getElementById('kpiTotal').innerText = dados.length;
+            document.getElementById('contadorRegistros').innerText = `Exibindo ${dados.length} de ${baseDados.length} registros`;
+
+            atualizarCardsEquipes(dados);
+
+            if(dados.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="12" class="empty-state">Nenhum registro encontrado com os filtros aplicados.</td></tr>`;
+                document.getElementById('containerEvolucaoMensal').innerHTML = `<div class="empty-state">Sem dados.</div>`;
+                return;
+            }
+
+            let mapMaquinas = {};
+            let mapMotivosPadronizados = {};
+            let mapMesEquipe = {};
+            let mapCodigosVM = {};
+
             dados.forEach(d => {
-                const m = d.motivoPadronizado || "Outros";
-                mapMotivos[m] = (mapMotivos[m] || 0) + 1;
+                let mqNum = String(d.maquina).replace(/\D/g, '').replace(/^0+/, '') || "1";
+                mapMaquinas[mqNum] = (mapMaquinas[mqNum] || 0) + 1;
+                
+                let eq = ['A','B','C','D'].includes(String(d.equipe).toUpperCase()) ? String(d.equipe).toUpperCase() : 'A';
+                if (!mapMesEquipe[d.mes]) mapMesEquipe[d.mes] = { A: 0, B: 0, C: 0, D: 0, total: 0 };
+                mapMesEquipe[d.mes][eq]++;
+                mapMesEquipe[d.mes].total++;
+
+                let mPadrao = d.motivoPadronizado;
+                mapMotivosPadronizados[mPadrao] = (mapMotivosPadronizados[mPadrao] || 0) + 1;
+
+                let cod = campoSeguro(d.codigo).toUpperCase() || "VM3";
+                mapCodigosVM[cod] = (mapCodigosVM[cod] || 0) + 1;
             });
 
-            const ordenados = Object.entries(mapMotivos).sort((a,b) => b[1] - a[1]).slice(0, 8);
-            const labels = ordenados.map(o => o[0]);
-            const valores = ordenados.map(o => o[1]);
+            let topMotivo = Object.keys(mapMotivosPadronizados).reduce((a, b) => mapMotivosPadronizados[a] > mapMotivosPadronizados[b] ? a : b, '-');
+            document.getElementById('kpiPrincipalCodigo').innerText = topMotivo;
+            document.getElementById('kpiPrincipalSub').innerText = `${mapMotivosPadronizados[topMotivo] || 0} ocorrências`;
 
-            const totalGeral = valores.reduce((a,b) => a + b, 0) || 1;
-            let acumulado = 0;
-            const percentuaisAcumulados = valores.map(v => {
-                acumulado += v;
-                return parseFloat(((acumulado / totalGeral) * 100).toFixed(1));
-            });
+            let topMaq = Object.keys(mapMaquinas).reduce((a, b) => mapMaquinas[a] > mapMaquinas[b] ? a : b, '-');
+            document.getElementById('kpiMaquinaCritica').innerText = `Máquina ${topMaq}`;
+            document.getElementById('kpiMaquinaSub').innerText = `${mapMaquinas[topMaq] || 0} ocorrências`;
 
-            const coresBarras = labels.map(l => {
-                if(crossFilter.tipo === 'motivo') {
-                    return crossFilter.valor === l ? '#059669' : 'rgba(5, 150, 105, 0.2)';
+            let ordemMeses = ["Março", "Abril", "Maio", "Junho", "Julho", "Agosto"];
+            let maxTotalMes = Math.max(...Object.values(mapMesEquipe).map(obj => obj.total), 1);
+            let htmlEvolucao = '';
+
+            ordemMeses.forEach(m => {
+                if(mapMesEquipe[m] !== undefined) {
+                    let dadosMes = mapMesEquipe[m];
+                    let hA = Math.max(Math.round((dadosMes.A / maxTotalMes) * 160), dadosMes.A > 0 ? 18 : 0);
+                    let hB = Math.max(Math.round((dadosMes.B / maxTotalMes) * 160), dadosMes.B > 0 ? 18 : 0);
+                    let hC = Math.max(Math.round((dadosMes.C / maxTotalMes) * 160), dadosMes.C > 0 ? 18 : 0);
+                    let hD = Math.max(Math.round((dadosMes.D / maxTotalMes) * 160), dadosMes.D > 0 ? 18 : 0);
+
+                    htmlEvolucao += `
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 105px;">
+                            <span style="font-size: 11px; font-weight: 800; color: var(--vp-primary); background: #e4e4e7; padding: 3px 10px; border-radius: 12px;">Total: ${dadosMes.total}</span>
+                            <div style="background: #fafafa; border-radius: var(--radius-md); width: 100%; height: 210px; display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding: 8px 6px; border: 1px solid var(--border-subtle);">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;" title="Equipe A: ${dadosMes.A}">
+                                    <span style="font-size: 10px; font-weight: 700; color: #0284c7;">${dadosMes.A > 0 ? dadosMes.A : ''}</span>
+                                    <div style="background: #0284c7; width: 16px; height: ${hA}px; border-radius: 4px 4px 0 0;"></div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;" title="Equipe B: ${dadosMes.B}">
+                                    <span style="font-size: 10px; font-weight: 700; color: #059669;">${dadosMes.B > 0 ? dadosMes.B : ''}</span>
+                                    <div style="background: #059669; width: 16px; height: ${hB}px; border-radius: 4px 4px 0 0;"></div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;" title="Equipe C: ${dadosMes.C}">
+                                    <span style="font-size: 10px; font-weight: 700; color: #d97706;">${dadosMes.C > 0 ? dadosMes.C : ''}</span>
+                                    <div style="background: #d97706; width: 16px; height: ${hC}px; border-radius: 4px 4px 0 0;"></div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;" title="Equipe D: ${dadosMes.D}">
+                                    <span style="font-size: 10px; font-weight: 700; color: #dc2626;">${dadosMes.D > 0 ? dadosMes.D : ''}</span>
+                                    <div style="background: #dc2626; width: 16px; height: ${hD}px; border-radius: 4px 4px 0 0;"></div>
+                                </div>
+                            </div>
+                            <span style="font-size: 13px; font-weight: 800; color: var(--vp-primary); margin-top: 2px;">${m}</span>
+                        </div>`;
                 }
-                return '#059669';
             });
+            document.getElementById('containerEvolucaoMensal').innerHTML = htmlEvolucao;
+
+            renderizarGraficoPareto(mapMotivosPadronizados, dados.length);
+            renderizarGraficoVM(mapCodigosVM);
+
+            let dadosOrdenados = [...dados].sort((a, b) => parseData(b.data) - parseData(a.data));
+
+            let fragmentoTabela = document.createDocumentFragment();
+            dadosOrdenados.forEach(item => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${item.data}</strong></td>
+                    <td>${item.mes}</td>
+                    <td><span class="badge-equipe">Equipe ${item.equipe}</span></td>
+                    <td>${item.lider}</td>
+                    <td><span class="badge-maq">Máq ${item.maquina}</span></td>
+                    <td>${item.serie}</td>
+                    <td><strong>${item.corrida}</strong></td>
+                    <td>${item.material}</td>
+                    <td>${item.placa}</td>
+                    <td><span class="badge-codigo">${item.codigo}</span></td>
+                    <td><span style="font-weight: 700; color: var(--vp-primary);">${item.motivoPadronizado}</span></td>
+                    <td style="color: #3f3f46;">${item.motivo}</td>
+                `;
+                fragmentoTabela.appendChild(tr);
+            });
+            corpo.appendChild(fragmentoTabela);
+        }
+
+        function renderizarGraficoPareto(mapMotivos, totalGeral) {
+            let sorted = Object.keys(mapMotivos).map(k => ({motivo: k, qtd: mapMotivos[k]})).sort((a,b) => b.qtd - a.qtd).slice(0, 8);
+            let labels = sorted.map(s => s.motivo);
+            let valores = sorted.map(s => s.qtd);
+
+            let acumulado = 0;
+            let percentualAcumulado = valores.map(v => {
+                acumulado += v;
+                return totalGeral > 0 ? ((acumulado / totalGeral) * 100).toFixed(1) : 0;
+            });
+
+            if (paretoChartInstance) paretoChartInstance.destroy();
 
             const ctx = document.getElementById('chartPareto').getContext('2d');
-            if(chartParetoInstance) chartParetoInstance.destroy();
-
-            chartParetoInstance = new Chart(ctx, {
+            paretoChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Frequência',
+                            label: 'Ocorrências',
                             data: valores,
-                            backgroundColor: coresBarras,
-                            borderRadius: 4,
+                            backgroundColor: '#059669',
+                            borderRadius: 6,
                             order: 2,
-                            yAxisID: 'y',
-                            barPercentage: 0.8,
-                            categoryPercentage: 0.8
+                            yAxisID: 'y'
                         },
                         {
                             label: '% Acumulado',
-                            data: percentuaisAcumulados,
+                            data: percentualAcumulado,
                             type: 'line',
-                            borderColor: '#d97706',
-                            backgroundColor: '#d97706',
-                            borderWidth: 2,
-                            pointRadius: 3,
+                            borderColor: '#dc2626',
+                            backgroundColor: '#dc2626',
+                            borderWidth: 3,
+                            pointRadius: 5,
                             order: 1,
                             yAxisID: 'y1'
                         }
@@ -813,174 +790,236 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 18 } },
-                    onClick: (evt, elements) => {
-                        if(elements.length > 0) {
-                            const index = elements[0].index;
-                            const motivoClicado = labels[index];
-                            if(crossFilter.tipo === 'motivo' && crossFilter.valor === motivoClicado) {
-                                crossFilter = { tipo: null, valor: null };
-                            } else {
-                                crossFilter = { tipo: 'motivo', valor: motivoClicado };
-                            }
-                            aplicarFiltrosGlobais();
-                        }
-                    },
                     plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+                        legend: { position: 'top' },
                         datalabels: {
-                            color: '#18181b',
-                            font: { weight: 'bold', size: 9 },
-                            formatter: (value, ctx) => {
-                                if(ctx.dataset.yAxisID === 'y1') return value + '%';
-                                return value;
+                            color: function(context) {
+                                return context.dataset.type === 'line' ? '#dc2626' : '#18181b';
                             },
+                            font: { weight: 'bold', size: 11 },
                             anchor: 'end',
-                            align: 'top'
+                            align: 'top',
+                            formatter: function(value, context) {
+                                return context.dataset.type === 'line' ? value + '%' : value;
+                            }
                         }
                     },
                     scales: {
-                        y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Ocorrências' }, ticks: { font: { size: 10 } } },
-                        y1: { beginAtZero: true, max: 105, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Acumulado (%)' }, ticks: { font: { size: 10 } } },
-                        x: { ticks: { font: { size: 9, weight: 'bold' } } }
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Quantidade de Ocorrências' },
+                            grid: { color: '#f4f4f5' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            title: { display: true, text: '% Acumulado' },
+                            grid: { drawOnChartArea: false },
+                            ticks: { callback: function(value) { return value + '%'; } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold', size: 11 } }
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            let idx = elements[0].index;
+                            let motivoSelecionado = labels[idx];
+                            let selectMotivo = document.getElementById('filtroMotivoSelect');
+                            
+                            if (selectMotivo.value === motivoSelecionado) {
+                                selectMotivo.value = 'TODOS';
+                            } else {
+                                selectMotivo.value = motivoSelecionado;
+                            }
+                            aplicarFiltrosGlobais();
+                        }
                     }
                 }
             });
         }
 
-        function renderizarVM(dados) {
-            const mapVM = {};
-            dados.forEach(d => {
-                const cd = (d.codigo || "VM3").toUpperCase();
-                mapVM[cd] = (mapVM[cd] || 0) + 1;
-            });
+        function renderizarGraficoVM(mapVM) {
+            let sorted = Object.keys(mapVM).map(k => ({codigo: k, qtd: mapVM[k]})).sort((a,b) => b.qtd - a.qtd);
+            let labels = sorted.map(s => s.codigo);
+            let valores = sorted.map(s => s.qtd);
 
-            const ordenados = Object.entries(mapVM).sort((a, b) => b[1] - a[1]);
-            const labels = ordenados.map(o => o[0]);
-            const valores = ordenados.map(o => o[1]);
-            const maxVal = Math.max(...valores, 10);
-
-            const coresVM = labels.map(l => {
-                if(crossFilter.tipo === 'vm') {
-                    return crossFilter.valor.toUpperCase() === l.toUpperCase() ? '#0284c7' : 'rgba(2, 132, 199, 0.2)';
-                }
-                return '#0284c7';
-            });
+            if (vmChartInstance) vmChartInstance.destroy();
 
             const ctx = document.getElementById('chartVM').getContext('2d');
-            if(chartVMInstance) chartVMInstance.destroy();
-
-            chartVMInstance = new Chart(ctx, {
+            vmChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels.length ? labels : ['Sem Registros'],
+                    labels: labels,
                     datasets: [{
-                        label: 'Ocorrências por Tipo de Desvio',
-                        data: valores.length ? valores : [0],
-                        backgroundColor: coresVM,
-                        borderRadius: 4,
-                        barPercentage: 0.8,
-                        categoryPercentage: 0.8
+                        label: 'Ocorrências por Tipo de VM',
+                        data: valores,
+                        backgroundColor: '#0284c7',
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 18 } },
-                    onClick: (evt, elements) => {
-                        if(elements.length > 0) {
-                            const index = elements[0].index;
-                            const vmClicado = labels[index];
-                            if(crossFilter.tipo === 'vm' && crossFilter.valor.toUpperCase() === vmClicado.toUpperCase()) {
-                                crossFilter = { tipo: null, valor: null };
-                            } else {
-                                crossFilter = { tipo: 'vm', valor: vmClicado };
-                            }
-                            aplicarFiltrosGlobais();
-                        }
-                    },
                     plugins: {
                         legend: { display: false },
                         datalabels: {
                             color: '#18181b',
-                            font: { weight: 'bold', size: 10 },
+                            font: { weight: 'bold', size: 12 },
                             anchor: 'end',
                             align: 'top'
                         }
                     },
                     scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            max: maxVal * 1.20,
-                            ticks: { font: { size: 10 } }
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Quantidade' },
+                            grid: { color: '#f4f4f5' }
                         },
-                        x: { 
-                            ticks: { font: { size: 10, weight: 'bold' } },
-                            grid: { display: false }
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold', size: 12 } }
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            let idx = elements[0].index;
+                            let vmSelecionado = labels[idx];
+                            let campoBusca = document.getElementById('filtroTexto');
+                            
+                            if (campoBusca.value === vmSelecionado) {
+                                campoBusca.value = '';
+                            } else {
+                                campoBusca.value = vmSelecionado;
+                            }
+                            aplicarFiltrosGlobais();
                         }
                     }
                 }
             });
         }
 
-        function renderizarTabela(dados) {
-            const tbody = document.getElementById('tabelaCorpo');
-            tbody.innerHTML = '';
-            document.getElementById('contadorRegistros').textContent = `Exibindo ${dados.length} registros`;
+        function carregarExcelExterno(e) {
+            let arquivo = e.target.files[0];
+            if (!arquivo) return;
+            let reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    let data = new Uint8Array(evt.target.result);
+                    let workbook = XLSX.read(data, {type: 'array', cellDates: true, raw: false});
+                    let primeiraAba = workbook.SheetNames[0];
+                    let worksheet = workbook.Sheets[primeiraAba];
+                    let json = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+                    
+                    if (json.length < 2) {
+                        alert("Planilha vazia ou sem dados válidos.");
+                        return;
+                    }
 
-            if(dados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" class="empty-state">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
-                return;
-            }
+                    let headerRowIdx = 0;
+                    for (let r = 0; r < Math.min(json.length, 10); r++) {
+                        let rowStr = json[r].join(" ").toLowerCase();
+                        if (rowStr.includes('lider') || rowStr.includes('corrida') || rowStr.includes('data')) {
+                            headerRowIdx = r;
+                            break;
+                        }
+                    }
 
-            dados.forEach(d => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${d.data || '-'}</td>
-                    <td>${d.mes || '-'}</td>
-                    <td><span class="badge-equipe">Eq. ${d.equipe || '-'}</span></td>
-                    <td>${d.lider || '-'}</td>
-                    <td><span class="badge-maq">Máq. ${d.maquina || '-'}</span></td>
-                    <td>${d.serie || '-'}</td>
-                    <td><strong>${d.corrida || '-'}</strong></td>
-                    <td>${d.material || '-'}</td>
-                    <td>${d.placa || '-'}</td>
-                    <td><span class="badge-codigo">${d.codigo || '-'}</span></td>
-                    <td><strong>${d.motivoPadronizado || '-'}</strong></td>
-                    <td title="${d.motivo || ''}">${d.motivo || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+                    let cabecalho = json[headerRowIdx].map(c => String(c || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim());
+                    let idxData = cabecalho.findIndex(c => c.includes('data'));
+                    let idxEquipe = cabecalho.findIndex(c => c === 'letra' || c === 'equipe');
+                    let idxLider = cabecalho.findIndex(c => c.includes('lider'));
+                    let idxMaq = cabecalho.findIndex(c => c.includes('maquina') || c.includes('maq'));
+                    let idxSerie = cabecalho.findIndex(c => c.includes('serie'));
+                    let idxCorrida = cabecalho.findIndex(c => c.includes('corrida'));
+                    let idxMaterial = cabecalho.findIndex(c => c.includes('material'));
+                    let idxPlaca = cabecalho.findIndex(c => c.includes('placas') || c.includes('placa'));
+                    let idxMotivo = cabecalho.findIndex(c => c.includes('motivo / justificativa') || c.includes('motivo'));
+                    let idxMotivoPadrao = cabecalho.findIndex(c => c.includes('motivo padronizado'));
+                    let idxCodigo = cabecalho.findIndex(c => c.includes('codigo_desvio') || c.includes('codigo'));
+
+                    let novos = [];
+                    for (let i = headerRowIdx + 1; i < json.length; i++) {
+                        let linha = json[i];
+                        if (!linha || linha.length === 0) continue;
+                        
+                        let dtBruta = idxData !== -1 ? linha[idxData] : "";
+                        if (!dtBruta || String(dtBruta).toLowerCase().includes('data')) continue;
+
+                        let dt = formatarDataExcel(dtBruta);
+                        let eq = idxEquipe !== -1 ? String(linha[idxEquipe] || "A").trim().toUpperCase() : "A";
+                        if (!['A','B','C','D'].includes(eq)) eq = "A";
+
+                        let lid = idxLider !== -1 ? String(linha[idxLider] || "Não Informado") : "Não Informado";
+                        let mq = idxMaq !== -1 ? String(linha[idxMaq] || "1").replace(/\D/g, '').replace(/^0+/, '') || "1" : "1";
+                        let serie = idxSerie !== -1 ? String(linha[idxSerie] || "-") : "-";
+                        let cr = idxCorrida !== -1 ? String(linha[idxCorrida] || "-") : "-";
+                        let mat = idxMaterial !== -1 ? String(linha[idxMaterial] || "-") : "-";
+                        let plc = idxPlaca !== -1 ? String(linha[idxPlaca] || "-").trim() : "-";
+                        let mot = idxMotivo !== -1 ? String(linha[idxMotivo] || "-").trim() : "-";
+                        
+                        let motBruto = idxMotivoPadrao !== -1 ? String(linha[idxMotivoPadrao] || mot) : mot;
+                        let motPadrao = padronizarMotivoRigido(motBruto);
+                        let cod = idxCodigo !== -1 ? String(linha[idxCodigo] || "VM3").trim().toUpperCase() : "VM3";
+
+                        novos.push({
+                            data: dt, 
+                            mes: extrairMes(dt), 
+                            equipe: eq,
+                            lider: lid, 
+                            maquina: mq, 
+                            serie: serie, 
+                            corrida: cr, 
+                            material: mat,
+                            placa: plc, 
+                            codigo: cod, 
+                            motivo: mot, 
+                            motivoPadronizado: motPadrao
+                        });
+                    }
+
+                    if (novos.length > 0) {
+                        baseDados = novos;
+                        salvarNoNavegador(baseDados, () => {
+                            popularFiltroMotivos();
+                            aplicarFiltrosGlobais();
+                            alert(`Sucesso! ${baseDados.length} registros importados e salvos permanentemente.`);
+                        });
+                    } else {
+                        alert("Nenhuma ocorrência válida encontrada na planilha carregada.");
+                    }
+                } catch(err) {
+                    alert("Erro ao ler Excel: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(arquivo);
         }
 
         function gerarPDF() {
             const elemento = document.getElementById('dashboardCompletoPDF');
             const opt = {
-                margin:       8,
-                filename:     'Dashboard_Usiminas_Qualidade_VP.pdf',
+                margin:       [10, 10, 10, 10],
+                filename:     'Usiminas_SGI_Dashboard_Executivo.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
             html2pdf().from(elemento).set(opt).save();
         }
 
-        window.onload = function() {
-            try {
-                const cacheSalvo = localStorage.getItem('usiminas_dados_cache');
-                if(cacheSalvo) {
-                    const parsed = JSON.parse(cacheSalvo);
-                    if(parsed && parsed.length > 0) {
-                        baseDados = parsed;
-                    }
+        window.addEventListener('DOMContentLoaded', () => {
+            carregarDoNavegador((dadosSalvos) => {
+                if (dadosSalvos && dadosSalvos.length > 0) {
+                    baseDados = dadosSalvos;
                 }
-            } catch(err) {
-                console.log("Storage cache error:", err);
-            }
-
-            popularFiltroMotivos(baseDados);
-            aplicarFiltrosGlobais();
-        };
+                popularFiltroMotivos();
+                aplicarFiltrosGlobais();
+            });
+        });
     </script>
 </body>
 </html>
