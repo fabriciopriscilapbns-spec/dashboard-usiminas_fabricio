@@ -63,6 +63,12 @@
         }
         .btn-pdf:hover { background: #0369a1; }
 
+        .btn-reset {
+            background: #3f3f46; color: #f4f4f5; border: 1px solid #52525b; padding: 10px 16px; border-radius: var(--radius-md);
+            font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .btn-reset:hover { background: #52525b; color: white; }
+
         .aciaria-bar {
             background: var(--card-bg); border-radius: var(--radius-lg); padding: 16px 28px; margin-bottom: 24px;
             box-shadow: var(--shadow-exec); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
@@ -128,12 +134,19 @@
         .kpi-value { font-size: 28px; font-weight: 800; color: var(--vp-primary); margin-bottom: 4px; letter-spacing: -0.5px; }
         .kpi-footer { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
-        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px; }
-        @media(max-width: 1200px) { .analytics-grid { grid-template-columns: 1fr; } }
+        .analytics-grid { display: grid; grid-template-columns: 1fr; gap: 28px; margin-bottom: 28px; }
 
         .analytics-box { background: var(--card-bg); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-exec); border: 1px solid var(--border-subtle); }
+        .box-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
         .box-title { font-size: 16px; font-weight: 800; color: var(--vp-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
-        .box-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; }
+        .box-desc { font-size: 12px; color: var(--text-muted); }
+
+        .filtro-chart-select {
+            padding: 8px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); 
+            font-size: 12px; font-weight: 700; color: var(--vp-primary); background: #fafafa; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .filtro-chart-select:focus { border-color: var(--vp-accent); outline: none; }
 
         .evolucao-card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-exec); border: 1px solid var(--border-subtle); margin-bottom: 28px; }
         
@@ -168,6 +181,63 @@
         .badge-equipe { background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 12px; font-weight: 800; font-size: 11px; border: 1px solid #c7d2fe; display: inline-block; }
         
         .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-weight: 600; }
+
+        /* ESTILOS DO MODAL INTERATIVO DO GRÁFICO DIÁRIO */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease; padding: 20px;
+        }
+        .modal-overlay.ativo { opacity: 1; pointer-events: all; }
+        
+        .modal-box {
+            background: #ffffff; border-radius: var(--radius-lg);
+            width: 100%; max-width: 780px; max-height: 85vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-subtle);
+            transform: translateY(20px); transition: transform 0.25s ease;
+        }
+        .modal-overlay.ativo .modal-box { transform: translateY(0); }
+
+        .modal-header {
+            background: #18181b; color: white; padding: 20px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 3px solid var(--vp-accent);
+        }
+        .modal-header h4 { font-size: 16px; font-weight: 800; text-transform: uppercase; }
+        .modal-header span { font-size: 12px; color: #a1a1aa; display: block; margin-top: 4px; font-weight: 500; }
+        .modal-close-btn {
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            width: 34px; height: 34px; border-radius: 50%; font-size: 16px;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .modal-close-btn:hover { background: var(--danger); }
+
+        .modal-body { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: #f4f4f5; }
+
+        .card-ocorrencia-dia {
+            background: white; border-radius: var(--radius-md); padding: 18px;
+            border: 1px solid var(--border-subtle); border-left: 5px solid var(--vp-accent);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .card-oc-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #f4f4f5; padding-bottom: 10px; margin-bottom: 12px;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .card-oc-escrita {
+            background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px;
+            padding: 12px 14px; font-size: 13px; line-height: 1.5; color: #27272a;
+            margin-top: 10px;
+        }
+        .card-oc-footer {
+            display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px;
+            font-size: 11px; color: var(--text-muted); font-weight: 600;
+        }
+        .card-oc-footer span { background: #f4f4f5; padding: 4px 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -179,10 +249,13 @@
                 <div class="exec-logo">Usiminas</div>
                 <div class="exec-title">
                     <h1>Queda de Qualidade • Lingotamento</h1>
-                    <span>Análise Gerencial Pareto Top 8 & Distribuição por VM</span>
+                    <span>Análise Executiva • Evolução Diária, Pareto & Distribuição VM</span>
                 </div>
             </div>
             <div class="header-actions">
+                <button class="btn-reset" onclick="restaurarDadosIniciais()" title="Restaurar registros padrão de demonstração e limpar o cache">
+                    <i class="fa-solid fa-rotate-right"></i> Restaurar Padrão
+                </button>
                 <button class="btn-pdf" onclick="gerarPDF()">
                     <i class="fa-solid fa-file-pdf"></i> Exportar PDF
                 </button>
@@ -209,7 +282,7 @@
                 </div>
             </div>
 
-            <!-- PAINEL DE FILTROS -->
+            <!-- PAINEL DE FILTROS GERAIS -->
             <div class="filters-panel">
                 <div class="filter-group">
                     <label><i class="fa-solid fa-users"></i> Equipe</label>
@@ -224,7 +297,7 @@
                 <div class="filter-group">
                     <label><i class="fa-solid fa-industry"></i> Máquina</label>
                     <select id="filtroMaquina" onchange="aplicarFiltrosGlobais()">
-                        <option value="TODAS">Todas as Máquinas</option>
+                        <option value="TODOS">Todas as Máquinas</option>
                         <option value="1">Máquina 1</option>
                         <option value="2">Máquina 2</option>
                         <option value="3">Máquina 3</option>
@@ -232,9 +305,9 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label><i class="fa-solid fa-calendar-days"></i> Mês</label>
+                    <label><i class="fa-solid fa-calendar-days"></i> Mês (Tabela & Pareto)</label>
                     <select id="filtroMes" onchange="aplicarFiltrosGlobais()">
-                        <option value="TODOS">Todos os Meses (Março a Agosto)</option>
+                        <option value="TODOS">Todos os Meses</option>
                         <option value="Março">Março</option>
                         <option value="Abril">Abril</option>
                         <option value="Maio">Maio</option>
@@ -301,8 +374,8 @@
             <!-- EVOLUÇÃO MENSAL POR EQUIPE -->
             <div class="evolucao-card">
                 <div class="box-title"><i class="fa-solid fa-chart-column" style="color: var(--vp-accent);"></i> Evolução Mensal do Volume de Quedas por Equipe</div>
-                <div class="box-desc">Comparativo mensal com distribuição por equipe</div>
-                <div id="containerEvolucaoMensal" style="display: flex; gap: 24px; align-items: flex-end; margin-top: 24px; min-height: 250px; overflow-x: auto; padding-bottom: 14px;"></div>
+                <div class="box-desc" style="margin-bottom: 20px;">Comparativo mensal com distribuição por equipe</div>
+                <div id="containerEvolucaoMensal" style="display: flex; gap: 24px; align-items: flex-end; margin-top: 14px; min-height: 250px; overflow-x: auto; padding-bottom: 14px;"></div>
                 <div class="legenda-equipes">
                     <div class="legenda-item"><div class="cor-legenda" style="background: #0284c7;"></div> Equipe A</div>
                     <div class="legenda-item"><div class="cor-legenda" style="background: #059669;"></div> Equipe B</div>
@@ -311,21 +384,61 @@
                 </div>
             </div>
 
+            <!-- GRÁFICO: EVOLUÇÃO DIÁRIA DO MÊS (INTERATIVO COM MODAL) -->
+            <div class="analytics-grid">
+                <div class="analytics-box">
+                    <div class="box-header">
+                        <div>
+                            <div class="box-title">
+                                <i class="fa-solid fa-chart-line" style="color: var(--vp-accent);"></i> 
+                                Evolução Diária de Ocorrências
+                            </div>
+                            <div class="box-desc" style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                <span>Selecione o mês desejado e</span>
+                                <span style="color: var(--vp-accent); font-weight: 700;">💡 Clique em qualquer ponto do gráfico para ler o relatório detalhado do dia</span>
+                            </div>
+                        </div>
+                        <div>
+                            <select id="filtroMesDiario" class="filtro-chart-select" onchange="atualizarApenasGraficoDiario()">
+                                <option value="Agosto">Agosto</option>
+                                <option value="Julho">Julho</option>
+                                <option value="Junho">Junho</option>
+                                <option value="Maio">Maio</option>
+                                <option value="Abril">Abril</option>
+                                <option value="Março">Março</option>
+                                <option value="TODOS">Todos os Meses</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 300px; width: 100%; cursor: pointer;">
+                        <canvas id="chartEvolucaoDiaria"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- SEÇÃO ANALÍTICA: GRÁFICO PARETO & DISTRIBUIÇÃO DE VM -->
             <div class="analytics-grid">
                 <!-- CAIXA 1: GRÁFICO PARETO -->
-                <div class="analytics-box" style="grid-column: span 2;">
-                    <div class="box-title"><i class="fa-solid fa-chart-line" style="color: var(--vp-accent);"></i> Gráfico de Pareto • Top 8 Principais Motivos (Frequência & % Acumulado)</div>
-                    <div class="box-desc">Análise de Pareto profissional com valores visíveis nas colunas e linha de acúmulo percentual</div>
+                <div class="analytics-box">
+                    <div class="box-header">
+                        <div>
+                            <div class="box-title"><i class="fa-solid fa-chart-line" style="color: var(--vp-accent);"></i> Gráfico de Pareto • Top 8 Principais Motivos (Frequência & % Acumulado)</div>
+                            <div class="box-desc">Análise de Pareto com valores nas colunas e curva de acúmulo percentual</div>
+                        </div>
+                    </div>
                     <div style="position: relative; height: 380px; width: 100%;">
                         <canvas id="chartPareto"></canvas>
                     </div>
                 </div>
 
                 <!-- CAIXA 2: DISTRIBUIÇÃO DE VM -->
-                <div class="analytics-box" style="grid-column: span 2;">
-                    <div class="box-title"><i class="fa-solid fa-chart-bar" style="color: var(--info);"></i> Distribuição por Tipo de VM (VM1, VM2, VM3...)</div>
-                    <div class="box-desc">Volume detalhado de ocorrências por código de desvio VM</div>
+                <div class="analytics-box">
+                    <div class="box-header">
+                        <div>
+                            <div class="box-title"><i class="fa-solid fa-chart-bar" style="color: var(--info);"></i> Distribuição por Tipo de VM (VM1, VM2, VM3...)</div>
+                            <div class="box-desc">Volume detalhado de ocorrências por código de desvio VM</div>
+                        </div>
+                    </div>
                     <div style="position: relative; height: 280px; width: 100%;">
                         <canvas id="chartVM"></canvas>
                     </div>
@@ -366,10 +479,30 @@
         </main>
     </div>
 
-    <script>
-        Chart.register(ChartDataLabels);
+    <!-- MODAL INTERATIVO: DETALHES DAS OCORRÊNCIAS DO DIA -->
+    <div id="modalDetalhesDia" class="modal-overlay" onclick="fecharModalAoClicarFora(event)">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <h4 id="modalDiaTitulo">Relatório Diário • Ocorrências do Dia</h4>
+                    <span id="modalDiaSub">Listagem descritiva completa das ocorrências registradas</span>
+                </div>
+                <button class="modal-close-btn" onclick="fecharModalDetalhesDia()" title="Fechar janela">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="modalDiaConteudo" class="modal-body">
+                <!-- Preenchido dinamicamente via Javascript -->
+            </div>
+        </div>
+    </div>
 
-        let baseDados = [
+    <script>
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+
+        let dadosPadraoIniciais = [
             {"data": "03/08/2026", "mes": "Agosto", "equipe": "A", "lider": "Diogo", "maquina": "1", "serie": "8614", "corrida": "272756", "material": "AS 1466", "placa": "231", "codigo": "VM3", "motivo": "VM3- Devido redução de velocidade para 0,60, atraso no forno panela", "motivoPadronizado": "Atraso do Forno Panela"},
             {"data": "03/08/2026", "mes": "Agosto", "equipe": "A", "lider": "Diogo", "maquina": "4", "serie": "8613", "corrida": "174120", "material": "AS 10 160", "placa": "211-221-231", "codigo": "VM3", "motivo": "VM3 - Redução de velocidade 0,60 devido temperatura alta", "motivoPadronizado": "Temperatura Alta"},
             {"data": "03/08/2026", "mes": "Agosto", "equipe": "C", "lider": "Talisson", "maquina": "1", "serie": "8612", "corrida": "372576", "material": "NSCC AA", "placa": "211", "codigo": "VM3", "motivo": "Obstrução de vávula submersa", "motivoPadronizado": "Obstrução da Válvula Submersa"},
@@ -386,51 +519,44 @@
             {"data": "13/03/2026", "mes": "Março", "equipe": "A", "lider": "Plinio", "maquina": "4", "serie": "8527", "corrida": "172264", "material": "AS 14 86", "placa": "221 - 231", "codigo": "VM3", "motivo": "VM - atraso de convertedor (0,6).", "motivoPadronizado": "Atraso do Convertedor"}
         ];
 
+        let baseDados = [...dadosPadraoIniciais];
         let filtroEquipeGrafico = 'TODOS';
         let filtroMotivoGrafico = 'TODOS';
         let filtroAciariaAtiva = 'TODAS';
         let paretoChartInstance = null;
         let vmChartInstance = null;
+        let diariaChartInstance = null;
+        let ultimoDatasetDiarioFiltrado = [];
 
-        function salvarNoNavegador(dados, callback) {
-            const req = indexedDB.open("UsiminasLingotamentoDB", 16);
-            req.onupgradeneeded = (e) => {
-                let db = e.target.result;
-                if (!db.objectStoreNames.contains("registros")) {
-                    db.createObjectStore("registros", { keyPath: "id" });
-                }
-            };
-            req.onsuccess = (e) => {
-                let db = e.target.result;
-                let tx = db.transaction("registros", "readwrite");
-                tx.objectStore("registros").put({ id: "dadosAtuais", registros: dados });
-                tx.oncomplete = () => { if (callback) callback(); };
-            };
+        function salvarNoNavegador(dados) {
+            try {
+                localStorage.setItem("usiminas_dados_cache_v2", JSON.stringify(dados));
+            } catch(ex) {
+                console.log("Erro ao salvar cache:", ex);
+            }
         }
 
-        function carregarDoNavegador(callback) {
-            const req = indexedDB.open("UsiminasLingotamentoDB", 16);
-            req.onupgradeneeded = (e) => {
-                let db = e.target.result;
-                if (!db.objectStoreNames.contains("registros")) {
-                    db.createObjectStore("registros", { keyPath: "id" });
+        function carregarDoNavegador() {
+            try {
+                let cache = localStorage.getItem("usiminas_dados_cache_v2");
+                if (cache) {
+                    let parsed = JSON.parse(cache);
+                    if (parsed && parsed.length > 0) return parsed;
                 }
-            };
-            req.onsuccess = (e) => {
-                let db = e.target.result;
-                let tx = db.transaction("registros", "readonly");
-                let store = tx.objectStore("registros");
-                let query = store.get("dadosAtuais");
-                query.onsuccess = () => {
-                    if (query.result && query.result.registros && query.result.registros.length > 0) {
-                        callback(query.result.registros);
-                    } else {
-                        callback(null);
-                    }
-                };
-                query.onerror = () => callback(null);
-            };
-            req.onerror = () => callback(null);
+            } catch(ex) {
+                console.log("Erro ao ler cache:", ex);
+            }
+            return null;
+        }
+
+        function restaurarDadosIniciais() {
+            if (confirm("Deseja restaurar os registros padrão e remover dados importados salvos no navegador?")) {
+                localStorage.removeItem("usiminas_dados_cache_v2");
+                baseDados = [...dadosPadraoIniciais];
+                popularFiltroMotivos();
+                atualizarSeletorMesDiario();
+                aplicarFiltrosGlobais();
+            }
         }
 
         function campoSeguro(valor) {
@@ -553,6 +679,25 @@
             });
         }
 
+        function atualizarSeletorMesDiario() {
+            let mesesDisponiveis = ["Agosto", "Julho", "Junho", "Maio", "Abril", "Março"];
+            let setMesesBase = new Set(baseDados.map(item => item.mes));
+            let selectDiario = document.getElementById('filtroMesDiario');
+            
+            let htmlOptions = '';
+            mesesDisponiveis.forEach(m => {
+                if (setMesesBase.has(m)) {
+                    htmlOptions += `<option value="${m}">${m}</option>`;
+                }
+            });
+            htmlOptions += `<option value="TODOS">Todos os Meses</option>`;
+            selectDiario.innerHTML = htmlOptions;
+            
+            if (selectDiario.options.length > 0) {
+                selectDiario.selectedIndex = 0;
+            }
+        }
+
         function filtrarAciaria(tipo) {
             filtroAciariaAtiva = tipo;
             document.getElementById('btnAciariaTodas').classList.toggle('ativo', tipo === 'TODAS');
@@ -572,6 +717,48 @@
             aplicarFiltrosGlobais();
         }
 
+        function obterDadosFiltradosSemMesDiario() {
+            let fEquipe = document.getElementById('filtroEquipe').value;
+            let fMaquina = document.getElementById('filtroMaquina').value;
+            let fMotivoSelect = document.getElementById('filtroMotivoSelect').value;
+            let fTexto = document.getElementById('filtroTexto').value.toLowerCase().trim();
+
+            return baseDados.filter(item => {
+                if (fEquipe !== 'TODOS' && String(item.equipe).toUpperCase() !== fEquipe) return false;
+                if (fMotivoSelect !== 'TODOS' && String(item.motivoPadronizado).trim() !== fMotivoSelect) return false;
+
+                let mqStr = String(item.maquina).replace(/\D/g, '').replace(/^0+/, '') || "1";
+                if (fMaquina !== 'TODOS' && fMaquina !== 'TODAS' && mqStr !== fMaquina) return false;
+
+                if (filtroAciariaAtiva === '1') {
+                    if (mqStr !== '4') return false;
+                } else if (filtroAciariaAtiva === '2') {
+                    if (mqStr !== '1' && mqStr !== '2' && mqStr !== '3') return false;
+                }
+                
+                if (fTexto !== '') {
+                    let matchTexto = campoSeguro(item.motivo).toLowerCase().includes(fTexto) || 
+                                   campoSeguro(item.lider).toLowerCase().includes(fTexto) || 
+                                   campoSeguro(item.corrida).toLowerCase().includes(fTexto) ||
+                                   campoSeguro(item.motivoPadronizado).toLowerCase().includes(fTexto);
+                    if (!matchTexto) return false;
+                }
+                return true;
+            });
+        }
+
+        function atualizarApenasGraficoDiario() {
+            let mesSelecionado = document.getElementById('filtroMesDiario').value;
+            let dadosBase = obterDadosFiltradosSemMesDiario();
+            
+            let dadosParaGrafico = dadosBase;
+            if (mesSelecionado !== 'TODOS') {
+                dadosParaGrafico = dadosBase.filter(item => item.mes === mesSelecionado);
+            }
+            ultimoDatasetDiarioFiltrado = dadosParaGrafico;
+            renderizarGraficoEvolucaoDiaria(dadosParaGrafico);
+        }
+
         function aplicarFiltrosGlobais() {
             let fEquipe = document.getElementById('filtroEquipe').value;
             let fMaquina = document.getElementById('filtroMaquina').value;
@@ -588,7 +775,7 @@
                 if (fMotivoSelect !== 'TODOS' && String(item.motivoPadronizado).trim() !== fMotivoSelect) return false;
 
                 let mqStr = String(item.maquina).replace(/\D/g, '').replace(/^0+/, '') || "1";
-                if (fMaquina !== 'TODAS' && mqStr !== fMaquina) return false;
+                if (fMaquina !== 'TODOS' && fMaquina !== 'TODAS' && mqStr !== fMaquina) return false;
 
                 if (filtroAciariaAtiva === '1') {
                     if (mqStr !== '4') return false;
@@ -598,9 +785,9 @@
                 
                 if (fTexto !== '') {
                     let matchTexto = campoSeguro(item.motivo).toLowerCase().includes(fTexto) || 
-                                     campoSeguro(item.lider).toLowerCase().includes(fTexto) || 
-                                     campoSeguro(item.corrida).toLowerCase().includes(fTexto) ||
-                                     campoSeguro(item.motivoPadronizado).toLowerCase().includes(fTexto);
+                                   campoSeguro(item.lider).toLowerCase().includes(fTexto) || 
+                                   campoSeguro(item.corrida).toLowerCase().includes(fTexto) ||
+                                   campoSeguro(item.motivoPadronizado).toLowerCase().includes(fTexto);
                     if (!matchTexto) return false;
                 }
                 return true;
@@ -613,6 +800,7 @@
             }
 
             renderizarDashboard(dadosFiltrados);
+            atualizarApenasGraficoDiario();
         }
 
         function atualizarCardsEquipes(dadosFiltrados) {
@@ -648,7 +836,9 @@
 
             if(dados.length === 0) {
                 corpo.innerHTML = `<tr><td colspan="12" class="empty-state">Nenhum registro encontrado com os filtros aplicados.</td></tr>`;
-                document.getElementById('containerEvolucaoMensal').innerHTML = `<div class="empty-state">Sem dados.</div>`;
+                document.getElementById('containerEvolucaoMensal').innerHTML = `<div class="empty-state">Sem dados para exibição.</div>`;
+                if (paretoChartInstance) { paretoChartInstance.destroy(); paretoChartInstance = null; }
+                if (vmChartInstance) { vmChartInstance.destroy(); vmChartInstance = null; }
                 return;
             }
 
@@ -746,6 +936,150 @@
             });
             corpo.appendChild(fragmentoTabela);
         }
+
+        function renderizarGraficoEvolucaoDiaria(dados) {
+            let mapaDias = {};
+            
+            dados.forEach(d => {
+                let dtStr = d.data; // formato DD/MM/AAAA
+                if (dtStr) {
+                    let diaChave = dtStr.substring(0, 5); // DD/MM
+                    mapaDias[diaChave] = (mapaDias[diaChave] || 0) + 1;
+                }
+            });
+
+            let diasOrdenados = Object.keys(mapaDias).sort((a, b) => {
+                let [diaA, mesA] = a.split('/').map(Number);
+                let [diaB, mesB] = b.split('/').map(Number);
+                if (mesA !== mesB) return mesA - mesB;
+                return diaA - diaB;
+            });
+
+            let valoresDiarios = diasOrdenados.map(d => mapaDias[d]);
+
+            if (diariaChartInstance) diariaChartInstance.destroy();
+
+            const ctx = document.getElementById('chartEvolucaoDiaria').getContext('2d');
+            diariaChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: diasOrdenados.length > 0 ? diasOrdenados : ['Sem ocorrências'],
+                    datasets: [{
+                        label: 'Ocorrências por Dia',
+                        data: valoresDiarios.length > 0 ? valoresDiarios : [0],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.25,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#059669',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#18181b',
+                            font: { weight: 'bold', size: 11 },
+                            anchor: 'top',
+                            align: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Quantidade de Ocorrências' },
+                            grid: { color: '#f4f4f5' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold', size: 11 } }
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            let idx = elements[0].index;
+                            let diaChave = diasOrdenados[idx];
+                            if (diaChave && diaChave !== 'Sem ocorrências') {
+                                abrirModalDetalhesDia(diaChave);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* FUNÇÕES DO MODAL INTERATIVO - RELATÓRIO DO DIA ESCOLHIDO */
+        function abrirModalDetalhesDia(diaChave) {
+            let ocorrenciasDia = ultimoDatasetDiarioFiltrado.filter(d => {
+                let dtStr = campoSeguro(d.data);
+                return dtStr.substring(0, 5) === diaChave;
+            });
+
+            if (ocorrenciasDia.length === 0) return;
+
+            let dataCompleta = ocorrenciasDia[0].data;
+            let mesNome = ocorrenciasDia[0].mes;
+
+            document.getElementById('modalDiaTitulo').innerText = `Ocorrências do dia ${dataCompleta} (${mesNome})`;
+            document.getElementById('modalDiaSub').innerText = `Total de ${ocorrenciasDia.length} desvio(s) registrado(s) nesta data • Relatório Descritivo`;
+
+            let listaHtml = '';
+            ocorrenciasDia.forEach((item) => {
+                listaHtml += `
+                    <div class="card-ocorrencia-dia">
+                        <div class="card-oc-header">
+                            <div>
+                                <span class="badge-equipe">Equipe ${item.equipe}</span>
+                                <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-left: 8px;">Líder: <strong>${item.lider}</strong></span>
+                            </div>
+                            <div>
+                                <span class="badge-maq">Máq ${item.maquina}</span>
+                                <span class="badge-codigo" style="margin-left: 6px;">${item.codigo}</span>
+                            </div>
+                        </div>
+                        <div style="margin: 10px 0; font-size: 14px; font-weight: 800; color: var(--vp-primary);">
+                            <i class="fa-solid fa-circle-exclamation" style="color: var(--danger); margin-right: 6px;"></i>
+                            ${item.motivoPadronizado}
+                        </div>
+                        <div class="card-oc-escrita">
+                            <strong>Justificativa/Descrição do Operador:</strong> "${item.motivo}"
+                        </div>
+                        <div class="card-oc-footer">
+                            <span><i class="fa-solid fa-layer-group"></i> Série: <strong>${item.serie}</strong></span>
+                            <span><i class="fa-solid fa-fire-flame-simple"></i> Corrida: <strong>${item.corrida}</strong></span>
+                            <span><i class="fa-solid fa-cube"></i> Material: <strong>${item.material}</strong></span>
+                            <span><i class="fa-solid fa-vector-square"></i> Placa(s): <strong>${item.placa}</strong></span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('modalDiaConteudo').innerHTML = listaHtml;
+            document.getElementById('modalDetalhesDia').classList.add('ativo');
+        }
+
+        function fecharModalDetalhesDia() {
+            document.getElementById('modalDetalhesDia').classList.remove('ativo');
+        }
+
+        function fecharModalAoClicarFora(e) {
+            if (e.target.id === 'modalDetalhesDia') {
+                fecharModalDetalhesDia();
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                fecharModalDetalhesDia();
+            }
+        });
 
         function renderizarGraficoPareto(mapMotivos, totalGeral) {
             let sorted = Object.keys(mapMotivos).map(k => ({motivo: k, qtd: mapMotivos[k]})).sort((a,b) => b.qtd - a.qtd).slice(0, 8);
@@ -984,11 +1318,11 @@
 
                     if (novos.length > 0) {
                         baseDados = novos;
-                        salvarNoNavegador(baseDados, () => {
-                            popularFiltroMotivos();
-                            aplicarFiltrosGlobais();
-                            alert(`Sucesso! ${baseDados.length} registros importados e salvos permanentemente.`);
-                        });
+                        salvarNoNavegador(baseDados);
+                        popularFiltroMotivos();
+                        atualizarSeletorMesDiario();
+                        aplicarFiltrosGlobais();
+                        alert(`Sucesso! ${baseDados.length} registros importados e memorizados pelo navegador.`);
                     } else {
                         alert("Nenhuma ocorrência válida encontrada na planilha carregada.");
                     }
@@ -1012,13 +1346,15 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            carregarDoNavegador((dadosSalvos) => {
-                if (dadosSalvos && dadosSalvos.length > 0) {
-                    baseDados = dadosSalvos;
-                }
-                popularFiltroMotivos();
-                aplicarFiltrosGlobais();
-            });
+            let dadosSalvos = carregarDoNavegador();
+            if (dadosSalvos && dadosSalvos.length > 0) {
+                baseDados = dadosSalvos;
+            } else {
+                baseDados = [...dadosPadraoIniciais];
+            }
+            popularFiltroMotivos();
+            atualizarSeletorMesDiario();
+            aplicarFiltrosGlobais();
         });
     </script>
 </body>
