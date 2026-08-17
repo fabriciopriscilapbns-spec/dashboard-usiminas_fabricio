@@ -254,13 +254,25 @@
 
     <!-- SCRIPT DE GERENCIAMENTO, GRÁFICOS E ANÁLISE GERENCIAL -->
     <script>
-        let registros = JSON.parse(localStorage.getItem('usiminas_retrabalho_exec')) || [];
+       <script>
+        let registros = [];
         let fotosArray = [];
         let escalaAtual = 1;
         let chartEquipesInstance = null;
         let chartDefeitosInstance = null;
         let chartGrausInstance = null;
         let chartIndicacaoInstance = null;
+
+        // Função para carregar os registros do Firestore ao abrir a página
+        async function carregarDoFirestore() {
+            try {
+                const querySnapshot = await getDocs(collection(window.db, "registros"));
+                registros = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                renderizar();
+            } catch (e) {
+                console.error("Erro ao carregar do Firestore: ", e);
+            }
+        }
 
         function converterDataParaTimestamp(dataStr) {
             if (!dataStr) return 0;
@@ -283,7 +295,6 @@
                 return;
             }
 
-            // Equipe com mais retrabalho
             const contagemEquipes = {};
             registros.forEach(r => {
                 const eq = `Equipe ${r.letra || 'A'}`;
@@ -292,7 +303,6 @@
             let equipeMaisRetrabalho = Object.keys(contagemEquipes).reduce((a, b) => contagemEquipes[a] > contagemEquipes[b] ? a : b);
             document.getElementById('kpiEquipeDestaque').innerText = `${equipeMaisRetrabalho} (${contagemEquipes[equipeMaisRetrabalho]} ocorr.)`;
 
-            // Inspetor com mais ocorrências
             const inspetoresMap = {};
             registros.forEach(r => {
                 const resp = r.responsavel ? r.responsavel.trim() : 'Não Identificado';
@@ -318,21 +328,18 @@
             document.getElementById('kpiInspetorNome').innerText = melhorInspetor;
             document.getElementById('kpiInspetorDetalhes').innerText = detalhesInspetor;
 
-            // Defeitos
             const contagemDefeitos = {};
             registros.forEach(r => {
                 const def = r.defeito ? `Defeito ${r.defeito}` : 'Outros';
                 contagemDefeitos[def] = (contagemDefeitos[def] || 0) + 1;
             });
 
-            // Grau do Defeito
             const contagemGraus = {};
             registros.forEach(r => {
                 const grau = r.grau ? `Grau ${r.grau}` : 'N/D';
                 contagemGraus[grau] = (contagemGraus[grau] || 0) + 1;
             });
 
-            // Indicação de Processo
             const contagemIndicacao = {};
             registros.forEach(r => {
                 const ind = r.indicacao ? r.indicacao : 'N/D';
@@ -693,8 +700,8 @@
             document.getElementById('modal').style.display = 'none';
         }
 
-        function salvar() {
-console.log(localStorage.getItem('usiminas_retrabalho_exec'));
+        // Funções adaptadas para salvar e excluir direto no Firestore
+        async function salvar() {
             const index = parseInt(document.getElementById('editIndex').value);
             
             const dados = {
@@ -714,40 +721,38 @@ console.log(localStorage.getItem('usiminas_retrabalho_exec'));
                 fotos: fotosArray
             };
 
-            if (index >= 0) {
-                registros[index] = dados;
-            } else {
-                registros.unshift(dados);
-            }
-
             try {
-                localStorage.setItem('usiminas_retrabalho_exec', JSON.stringify(registros));
+                if (index < 0 || !registros[index].id) {
+                    await addDoc(collection(window.db, "registros"), dados);
+                } else {
+                    const idDoc = registros[index].id;
+                    await updateDoc(doc(window.db, "registros", idDoc), dados);
+                }
+                
                 fecharModal();
-                renderizar();
-                alert("✅ Registro e gráficos salvos com sucesso!");
+                await carregarDoFirestore();
+                alert("✅ Registro salvo com sucesso na nuvem!");
             } catch (err) {
+                console.error(err);
+                alert("⚠️ Erro ao salvar os dados no Firestore.");
+            }
+        }
+
+        async function excluir(index) {
+            if(confirm("Tem certeza que deseja excluir este registro de placa?")) {
                 try {
-                    localStorage.clear();
-                    localStorage.setItem('usiminas_retrabalho_exec', JSON.stringify([dados]));
-                    registros = [dados];
-                    fecharModal();
-                    renderizar();
-                    alert("✅ Salvo com sucesso! (Memória do navegador otimizada).");
-                } catch(e) {
-                    alert("⚠️ Erro ao salvar. Muitas fotos pesadas adicionadas.");
+                    const idDoc = registros[index].id;
+                    if (idDoc) {
+                        await deleteDoc(doc(window.db, "registros", idDoc));
+                    }
+                    await carregarDoFirestore();
+                } catch (e) {
+                    console.error("Erro ao excluir do Firestore: ", e);
+                    alert("⚠️ Erro ao excluir o registro.");
                 }
             }
         }
 
-        function excluir(index) {
-            if(confirm("Tem certeza que deseja excluir este registro de placa?")) {
-                registros.splice(index, 1);
-                localStorage.setItem('usiminas_retrabalho_exec', JSON.stringify(registros));
-                renderizar();
-            }
-        }
-
-        renderizar();
+        // Inicializa buscando os dados do Firestore assim que a página abre
+        carregarDoFirestore();
     </script>
-</body>
-</html>
