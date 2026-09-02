@@ -1,17 +1,20 @@
 {
-"name": "Usiminas Qualidade e Inspecao",
-"short_name": "Usiminas",
-"description": "Aplicativo para inspecao de patios, acompanhamento de materiais e gestao da qualidade.",
-"start_url": "./",
-"display": "standalone",
-"background_color": "#0f172a",
-"theme_color": "#0f172a",
-"orientation": "portrait",
-"icons": [
-{
-"src": "https://cdn-icons-png.flaticon.com/512/2954/2954848.png",
-"sizes": "512x512",
-"type": "image/png"
-}
-]
+  "name": "Usiminas Inspeção",
+  "short_name": "UsiminasApp",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/0f172a/ffffff.png?text=U",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/0f172a/ffffff.png?text=U",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
