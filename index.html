@@ -781,7 +781,81 @@
         }
 
         window.gerarPdfGeral = async function() {
-            alert("Gerando PDF do Relatório de Pátios...");
+            const patios = listaDados.filter(i => !i.tipoRelatorio || i.tipoRelatorio === "patio_oficial");
+            if (patios.length === 0) { alert("Sem relatórios de pátio para gerar PDF."); return; }
+
+            let blocoHtml = '';
+            patios.forEach((item) => {
+                let fotosHtml = '';
+                if (item.fotos && item.fotos.length > 0) {
+                    fotosHtml = '<div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">';
+                    item.fotos.forEach((f, idx) => {
+                        fotosHtml += `<div style="text-align: center; margin-bottom: 10px;"><img src="${f}" style="width: 220px; height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" /><br><span style="font-size: 9px; color: #64748b;">Foto ${idx + 1} (Com Marcação)</span></div>`;
+                    });
+                    fotosHtml += '</div>';
+                } else {
+                    fotosHtml = '<span style="font-size: 11px; color: #94a3b8;">Sem imagens registradas</span>';
+                }
+
+                let participantesFmt = item.participantes ? item.participantes.replace(/\n/g, '<br>') : '-';
+
+                blocoHtml += `
+                    <div style="margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; page-break-inside: avoid;">
+                        <div style="background: #0f172a; color: white; padding: 6px 10px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-radius: 4px; margin-bottom: 8px;">
+                            Pátio: ${item.patio || '-'} • Data: ${item.dataInsp || '-'}
+                        </div>
+                        <table style="width: 100%; font-size: 11px; margin-bottom: 8px; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 6px 4px; background: #f8fafc;" colspan="2"><strong>Observação / Defeito:</strong><br><div style="margin-top: 4px; line-height: 1.4; color: #334155; font-weight: bold;">${item.obs || '-'}</div></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 4px;" colspan="2"><strong>Participantes:</strong><br><div style="margin-top: 4px; line-height: 1.4; color: #334155;">${participantesFmt}</div></td>
+                            </tr>
+                        </table>
+                        <div style="text-align: center; margin-top: 10px;">${fotosHtml}</div>
+                    </div>`;
+            });
+
+            const container = document.getElementById('relatorioPdfExport');
+            container.style.display = 'block';
+            container.style.width = '700px';
+            container.style.background = 'white';
+            container.style.padding = '20px';
+            container.innerHTML = `
+                <div style="font-family: 'Inter', sans-serif; color: #1e293b;">
+                    <div style="border-bottom: 3px solid #0f172a; padding-bottom: 10px; margin-bottom: 15px;">
+                        <span style="background: #0f172a; color: white; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 3px;">Usiminas</span>
+                        <h2 style="color: #0f172a; margin: 4px 0 2px 0; font-size: 16px; font-weight: 900; text-transform: uppercase;">Relatório Geral de Inspeção de Pátios</h2>
+                        <p style="font-size: 11px; color: #475569; margin: 0;">Emitido em: ${new Date().toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    <div>${blocoHtml}</div>
+                </div>`;
+
+            try {
+                const canvasPdf = await html2canvas(container, { scale: 1.5, useCORS: true });
+                const imgData = canvasPdf.toDataURL('image/jpeg', 0.85);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = (canvasPdf.height * imgWidth) / canvasPdf.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                pdf.save(`Relatorio_Geral_Inspecao_Patios.pdf`);
+            } catch (err) {
+                console.error("Erro PDF Pátios:", err);
+                alert("Erro ao gerar PDF.");
+            }
+            container.style.display = 'none';
         }
 
         window.gerarPdfMaterial = async function() {
