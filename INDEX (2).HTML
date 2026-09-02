@@ -1,1 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usiminas | Relatório de Inspeção & Acompanhamento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Biblioteca para Relatórios em PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Firebase SDKs e Lógica Unificada -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, collection, addDoc, updateDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgygbr224GsADrAUMHpf_0ORD3VpImn3A",
+            authDomain: "fabricio-usina.firebaseapp.com",
+            projectId: "fabricio-usina",
+            storageBucket: "fabricio-usina.firebasestorage.app",
+            messagingSenderId: "70323440326",
+            appId: "1:70323440326:web:c80c79ae8635f1e51f25c7",
+            measurementId: "G-E8NVS89LMW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = initializeFirestore(app, {
+            localCache: persistentLocalCache({
+                tabManager: persistentSingleTabManager()
+            })
+        });
+
+        const NOME_COLECAO = "ocorrencias";
+
+        window.salvarFirebase = async function(registro, idEditando) {
+            try {
+                if (idEditando && idEditando.trim() !== "") {
+                    await updateDoc(doc(db, NOME_COLECAO, idEditando), registro);
+                    alert("Registro atualizado com sucesso!");
+                } else {
+                    await addDoc(collection(db, NOME_COLECAO), registro);
+                    alert("Registro salvo com sucesso!");
+                }
+                window.fecharModal();
+                window.fecharModalMaterial();
+            } catch (e) {
+                console.error("Erro ao salvar:", e);
+                alert("Erro ao salvar no banco de dados.");
+            }
+        };
+
+        window.deletarFirebase = async function(id) {
+            if (confirm("Deseja realmente excluir este registro?")) {
+                try {
+                    await deleteDoc(doc(db, NOME_COLECAO, id));
+                } catch (e) {
+                    console.error("Erro ao deletar:", e);
+                }
+            }
+        };
+
+        window.carregarDadosTempoReal = function(callback) {
+            const q = collection(db, NOME_COLECAO);
+            onSnapshot(q, (querySnapshot) => {
+                let lista = [];
+                querySnapshot.forEach((doc) => {
+                    lista.push({ id: doc.id, ...doc.data() });
+                });
+                callback(lista);
+            }, (error) => {
+                console.error("Erro ao puxar dados:", error);
+            });
+        };
+    </script>
+
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-foto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; z-index: 2000; overflow: auto; }
+        .modal-editor { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 3000; }
+        
+        #imgZoomAmpliada {
+            transition: transform 0.2s ease;
+            cursor: zoom-in;
+            transform: scale(1);
+            max-height: 90vh;
+            max-width: 90vw;
+            object-fit: contain;
+            user-select: none;
+        }
+        #imgZoomAmpliada.zoom-ativo {
+            transform: scale(2.2);
+            cursor: zoom-out;
+        }
+        #canvasEditor {
+            max-height: 70vh;
+            max-width: 90vw;
+            touch-action: none;
+            cursor: crosshair;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <!-- HEADER EXECUTIVO -->
+    <header class="bg-[#0f172a] text-white p-5 rounded-2xl shadow-xl mb-6 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-emerald-600">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="bg-emerald-600 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Usiminas</span>
+                <span class="text-xs text-slate-300 font-medium">Elaborado por: Fabrício Francioli Souza - Unidade Técnica da Aciaria</span>
+            </div>
+            <h1 class="text-2xl font-black uppercase tracking-tight mt-1">Gestão de Qualidade & Inspeção</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Inspeção de Pátios & Acompanhamento de Material</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="mudarPagina('patios')" id="navPatios" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-industry"></i> Pátios
+            </button>
+            <button onclick="mudarPagina('materiais')" id="navMateriais" class="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer hover:bg-slate-700">
+                <i class="fa-solid fa-boxes-stacked"></i> Acompanhamento de Material
+            </button>
+        </div>
+    </header>
+
+    <!-- ================= PÁGINA 1: PÁTIOS ================= -->
+    <div id="paginaPatios" class="max-w-7xl mx-auto space-y-6">
+        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex gap-2 overflow-x-auto" id="containerAbasPatio">
+                <button onclick="filtrarPorPatio('')" id="aba-todas" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition">
+                    <i class="fa-solid fa-border-all mr-1"></i> Todos os Pátios
+                </button>
+                <button onclick="filtrarPorPatio('29')" id="aba-29" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition">
+                    <i class="fa-solid fa-industry mr-1 text-emerald-600"></i> Pátio 29
+                </button>
+                <button onclick="filtrarPorPatio('96')" id="aba-96" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition">
+                    <i class="fa-solid fa-industry mr-1 text-emerald-600"></i> Pátio 96
+                </button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="gerarPdfGeral()" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-blue-500 transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-file-pdf"></i> PDF Pátios
+                </button>
+                <button onclick="abrirModalNovo()" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-emerald-500 transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-camera-retro"></i> Novo Relatório
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3 bg-slate-50/50">
+                <h3 class="font-bold text-slate-700 text-sm uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-list text-emerald-600"></i> Histórico Organizado por Pátio
+                </h3>
+                <div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                    <input type="date" id="filtroData" onchange="renderizar()" class="p-2 text-xs border rounded-lg w-full sm:w-auto bg-white text-slate-600 font-medium">
+                    <input type="text" id="filtroBusca" onkeyup="renderizar()" placeholder="Filtrar por pátio, participante ou observação..." class="p-2 text-xs border rounded-lg w-full sm:w-72 bg-white">
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="text-[11px] uppercase bg-slate-100 text-slate-600 font-extrabold tracking-wider">
+                        <tr>
+                            <th class="p-4">Data / Hora</th>
+                            <th class="p-4">Pátio(s)</th>
+                            <th class="p-4">Participantes</th>
+                            <th class="p-4">Observação / Defeito</th>
+                            <th class="p-4 text-center">Fotos com Marcação</th>
+                            <th class="p-4 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCorpo" class="divide-y divide-slate-100 text-xs font-medium text-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PÁGINA 2: ACOMPANHAMENTO DE MATERIAL ================= -->
+    <div id="paginaMateriais" class="max-w-7xl mx-auto space-y-6 hidden">
+        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-2">
+                <h3 class="font-black text-slate-800 text-sm uppercase"><i class="fa-solid fa-cubes text-emerald-600 mr-1"></i> Controle de Materiais e Defeitos</h3>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="gerarPdfMaterial()" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-blue-500 transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-file-pdf"></i> PDF Materiais
+                </button>
+                <button onclick="abrirModalNovoMaterial()" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-emerald-500 transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-plus"></i> Novo Material
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <input type="text" id="filtroBuscaMaterial" onkeyup="renderizarMateriais()" placeholder="Filtrar por ID Material, Linha, Inspetor ou Qualidade..." class="p-2 text-xs border rounded-lg w-full sm:w-80 bg-white">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="text-[11px] uppercase bg-slate-100 text-slate-600 font-extrabold tracking-wider">
+                        <tr>
+                            <th class="p-3">ID Material</th>
+                            <th class="p-3">Esp / Larg (mm)</th>
+                            <th class="p-3">Qualidade</th>
+                            <th class="p-3">Defeito / Linha</th>
+                            <th class="p-3">Inspetor / FB</th>
+                            <th class="p-3">Análise Técnica</th>
+                            <th class="p-3 text-center">Foto</th>
+                            <th class="p-3 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCorpoMaterial" class="divide-y divide-slate-100 text-xs font-medium text-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CRIAÇÃO / EDIÇÃO DE RELATÓRIO DE PÁTIO -->
+    <div id="modal" class="modal">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h2 id="modalTitulo" class="font-black text-slate-800 text-lg uppercase"><i class="fa-solid fa-file-invoice text-emerald-600 mr-2"></i> Criar Relatório de Inspeção</h2>
+                <button onclick="fecharModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <input type="hidden" id="iIdEditando">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Data da Inspeção</label>
+                    <input type="text" id="iDataInsp" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Pátio(s) Inspecionado(s)</label>
+                    <input type="text" id="iPatio" placeholder="Ex: 29 ou 96" class="w-full p-2.5 border rounded-lg bg-slate-50 font-bold text-emerald-700">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Participantes da Inspeção</label>
+                    <textarea id="iParticipantes" rows="3" class="w-full p-2.5 border rounded-lg bg-slate-50 leading-relaxed"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Observação Geral / Condição</label>
+                    <input type="text" id="iObs" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                </div>
+                
+                <div class="md:col-span-2 bg-slate-50 p-4 rounded-xl border-2 border-dashed border-emerald-300 text-center relative">
+                    <input type="file" id="iCamInput" accept="image/*" capture="environment" class="hidden" onchange="iniciarFilaFotos(this.files)">
+                    <input type="file" id="iGaleriaInput" accept="image/*" multiple class="hidden" onchange="iniciarFilaFotos(this.files)">
+                    <div class="flex flex-col items-center justify-center space-y-2">
+                        <i class="fa-solid fa-camera text-emerald-600 text-2xl"></i>
+                        <span class="text-xs font-bold text-slate-700">Adicione até <span class="text-emerald-600 font-black">4 fotos</span>:</span>
+                        <div class="flex gap-2 justify-center flex-wrap">
+                            <button type="button" onclick="document.getElementById('iGaleriaInput').click()" class="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-slate-600 cursor-pointer">Galeria</button>
+                            <button type="button" onclick="document.getElementById('iCamInput').click()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-emerald-500 cursor-pointer">Câmera</button>
+                        </div>
+                        <span id="imgStatus" class="text-[11px] text-slate-500 font-semibold mt-1">0 de 4 fotos</span>
+                    </div>
+                    <div id="galeriaPreviewModal" class="mt-3 flex flex-wrap gap-2 justify-center"></div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 pt-3 border-t">
+                <button onclick="fecharModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">Cancelar</button>
+                <button onclick="salvar()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CRIAÇÃO / EDIÇÃO DE MATERIAL -->
+    <div id="modalMaterial" class="modal">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h2 id="modalMaterialTitulo" class="font-black text-slate-800 text-lg uppercase"><i class="fa-solid fa-boxes-stacked text-emerald-600 mr-2"></i> Acompanhamento de Material</h2>
+                <button onclick="fecharModalMaterial()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <input type="hidden" id="mIdEditando">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">ID Material</label>
+                    <input type="text" id="mIdMaterial" placeholder="Ex: PL-89321" class="w-full p-2.5 border rounded-lg bg-slate-50 font-bold">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Espessura (mm)</label>
+                    <input type="text" id="mEspessura" placeholder="Ex: 25.4" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Largura (mm)</label>
+                    <input type="text" id="mLargura" placeholder="Ex: 1500" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Qualidade do Aço</label>
+                    <input type="text" id="mQualidade" placeholder="Ex: ASTM A36" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Defeito</label>
+                    <input type="text" id="mDefeito" placeholder="Ex: Rebarba / Trinca" class="w-full p-2.5 border rounded-lg bg-slate-50 font-bold text-rose-600">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Linha</label>
+                    <input type="text" id="mLinha" placeholder="Ex: Linha 2" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Inspetor</label>
+                    <input type="text" id="mInspetor" placeholder="Ex: Fabrício F." class="w-full p-2.5 border rounded-lg bg-slate-50">
+                </div>
+                
+                <!-- CAMPO DE DESCRIÇÃO FB AMPLIADO -->
+                <div class="md:col-span-3">
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Descrição FB (Espaço ampliado para texto longo)</label>
+                    <textarea id="mDescricaoFb" rows="5" placeholder="Insira o texto detalhado/longo da descrição FB aqui..." class="w-full p-3 border rounded-lg bg-slate-50 leading-relaxed"></textarea>
+                </div>
+
+                <!-- CAMPO DE ANÁLISE TÉCNICA AMPLIADO -->
+                <div class="md:col-span-3">
+                    <label class="font-bold text-slate-500 uppercase block mb-1">Análise Técnica</label>
+                    <textarea id="mAnaliseTecnica" rows="4" placeholder="Parecer técnico detalhado..." class="w-full p-3 border rounded-lg bg-slate-50 leading-relaxed"></textarea>
+                </div>
+                
+                <div class="md:col-span-3 bg-slate-50 p-4 rounded-xl border-2 border-dashed border-emerald-300 text-center relative">
+                    <input type="file" id="mCamInput" accept="image/*" capture="environment" class="hidden" onchange="iniciarFotoMaterial(this.files[0])">
+                    <input type="file" id="mGaleriaInput" accept="image/*" class="hidden" onchange="iniciarFotoMaterial(this.files[0])">
+                    <div class="flex flex-col items-center justify-center space-y-2">
+                        <i class="fa-solid fa-camera text-emerald-600 text-2xl"></i>
+                        <span class="text-xs font-bold text-slate-700">Anexar Imagem do Defeito:</span>
+                        <div class="flex gap-2 justify-center">
+                            <button type="button" onclick="document.getElementById('mGaleriaInput').click()" class="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer">Galeria</button>
+                            <button type="button" onclick="document.getElementById('mCamInput').click()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer">Câmera</button>
+                        </div>
+                    </div>
+                    <div id="previewMaterialContainer" class="mt-3 flex justify-center"></div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 pt-3 border-t">
+                <button onclick="fecharModalMaterial()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">Cancelar</button>
+                <button onclick="salvarMaterial()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer">Salvar Material</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITOR DE FOTO (CIRCULAR DEFEITO) -->
+    <div id="modalEditor" class="modal-editor">
+        <div class="bg-slate-900 p-5 rounded-2xl flex flex-col items-center max-w-3xl w-full mx-4 border border-slate-700 shadow-2xl">
+            <div class="flex justify-between items-center w-full mb-3 text-white">
+                <div>
+                    <h3 class="font-black text-sm uppercase"><i class="fa-solid fa-pen-nib text-emerald-400 mr-1"></i> Circular Defeito na Foto</h3>
+                    <p class="text-[11px] text-slate-400">Desenhe ao redor da falha/defeito encontrado.</p>
+                </div>
+                <button onclick="cancelarEdicaoFoto()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="flex items-center gap-3 mb-3 bg-slate-800 p-2.5 rounded-xl border border-slate-700 w-full justify-between flex-wrap text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-300 font-bold">Cor:</span>
+                    <button type="button" onclick="mudarCor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 border-2 border-white shadow cursor-pointer color-btn" data-color="#ef4444"></button>
+                    <button type="button" onclick="mudarCor('#eab308')" class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-transparent shadow cursor-pointer color-btn" data-color="#eab308"></button>
+                    <button type="button" onclick="mudarCor('#22c55e')" class="w-6 h-6 rounded-full bg-green-500 border-2 border-transparent shadow cursor-pointer color-btn" data-color="#22c55e"></button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-300 font-bold">Espessura:</span>
+                    <input type="range" id="inputEspessura" min="3" max="15" value="6" class="cursor-pointer accent-emerald-500 w-24">
+                </div>
+                <div>
+                    <button type="button" onclick="limparCanvas()" class="bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold cursor-pointer">Limpar</button>
+                </div>
+            </div>
+
+            <div class="relative overflow-hidden flex justify-center bg-black rounded-lg border border-slate-700 mb-4 w-full">
+                <canvas id="canvasEditor"></canvas>
+            </div>
+
+            <div class="flex justify-end gap-3 w-full">
+                <button type="button" onclick="cancelarEdicaoFoto()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold cursor-pointer">Descartar</button>
+                <button type="button" onclick="salvarFotoEditada()" class="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Concluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ZOOM -->
+    <div id="modalZoom" class="modal-foto" onclick="fecharZoom(event)">
+        <div class="absolute top-4 right-4 z-50">
+            <button onclick="fecharZoom(event)" class="bg-rose-600 text-white w-8 h-8 rounded-lg font-bold shadow flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="w-full h-full flex items-center justify-center p-4">
+            <img id="imgZoomAmpliada" onclick="alternarZoom(event)" src="https://placehold.co/600x400/png">
+        </div>
+    </div>
+
+    <!-- ÁREAS OCULTAS PARA PDF -->
+    <div id="relatorioPdfExport" style="display:none;"></div>
+    <div id="materialPdfExport" style="display:none;"></div>
+
+    <script>
+        let listaDados = [];
+        let mapaDados = {};
+        let fotosTemporarias = [];
+        let filaFotosPendentes = [];
+        let imagemAtualObj = null;
+        let patioFiltroAtivo = '';
+        let paginaAtual = 'patios';
+        
+        let fotoMaterialTemp = '';
+        let tipoEdicaoFotoAtual = 'patio';
+
+        let canvas, ctx;
+        let desenhando = false;
+        let corAtual = '#ef4444';
+
+        function iniciarCarregamento() {
+            if (window.carregarDadosTempoReal) {
+                window.carregarDadosTempoReal((dados) => {
+                    listaDados = dados;
+                    mapaDados = {};
+                    dados.forEach(d => { mapaDados[d.id] = d; });
+                    renderizar();
+                    renderizarMateriais();
+                });
+            } else {
+                setTimeout(iniciarCarregamento, 100);
+            }
+
+            canvas = document.getElementById('canvasEditor');
+            ctx = canvas.getContext('2d');
+            configurarEventosMouseToque();
+        }
+        window.addEventListener('DOMContentLoaded', iniciarCarregamento);
+
+        window.mudarPagina = function(pag) {
+            paginaAtual = pag;
+            const pPatios = document.getElementById('paginaPatios');
+            const pMat = document.getElementById('paginaMateriais');
+            const navP = document.getElementById('navPatios');
+            const navM = document.getElementById('navMateriais');
+
+            if (pag === 'patios') {
+                pPatios.classList.remove('hidden');
+                pMat.classList.add('hidden');
+                navP.className = "bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer";
+                navM.className = "bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer hover:bg-slate-700";
+            } else {
+                pPatios.classList.add('hidden');
+                pMat.classList.remove('hidden');
+                navM.className = "bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer";
+                navP.className = "bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer hover:bg-slate-700";
+            }
+        }
+
+        window.filtrarPorPatio = function(patio) {
+            patioFiltroAtivo = patio;
+            const abaTodas = document.getElementById('aba-todas');
+            const aba29 = document.getElementById('aba-29');
+            const aba96 = document.getElementById('aba-96');
+
+            if (abaTodas && aba29 && aba96) {
+                abaTodas.className = patio === '' ? 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition' : 'px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition';
+                aba29.className = patio === '29' ? 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition' : 'px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition';
+                aba96.className = patio === '96' ? 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition' : 'px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition';
+            }
+            renderizar();
+        };
+
+        // --- MÓDULO PÁTIOS ---
+        window.fecharModal = function() { document.getElementById('modal').style.display = 'none'; }
+        window.abrirModalNovo = function() {
+            document.getElementById('modal').style.display = 'flex';
+            fotosTemporarias = [];
+            document.getElementById('modalTitulo').innerText = "Criar Relatório de Inspeção";
+            document.getElementById('iIdEditando').value = '';
+            document.getElementById('iDataInsp').value = new Date().toLocaleDateString('pt-BR');
+            document.getElementById('iPatio').value = patioFiltroAtivo ? patioFiltroAtivo : '';
+            document.getElementById('iParticipantes').value = 'Fabrício Francioli Souza - UI TEC - Aciaria\nRenato Gonçalves - Qualidade Controle Integrado';
+            document.getElementById('iObs').value = '';
+            atualizarPreviewModal();
+        }
+        window.abrirModalEditar = function(id) {
+            const itemEdit = mapaDados[id];
+            if (!itemEdit) return;
+            document.getElementById('modal').style.display = 'flex';
+            fotosTemporarias = itemEdit.fotos ? [...itemEdit.fotos] : [];
+            document.getElementById('modalTitulo').innerText = "Editar Relatório";
+            document.getElementById('iIdEditando').value = itemEdit.id;
+            document.getElementById('iDataInsp').value = itemEdit.dataInsp || '';
+            document.getElementById('iPatio').value = itemEdit.patio || '';
+            document.getElementById('iParticipantes').value = itemEdit.participantes || '';
+            document.getElementById('iObs').value = itemEdit.obs || '';
+            atualizarPreviewModal();
+        }
+
+        window.iniciarFilaFotos = function(files) {
+            if (fotosTemporarias.length + files.length > 4) {
+                alert("Máximo de 4 fotos.");
+                return;
+            }
+            tipoEdicaoFotoAtual = 'patio';
+            filaFotosPendentes = Array.from(files);
+            processarProximaFotoFila();
+            document.getElementById('iCamInput').value = '';
+            document.getElementById('iGaleriaInput').value = '';
+        }
+
+        // --- MÓDULO MATERIAIS ---
+        window.fecharModalMaterial = function() { document.getElementById('modalMaterial').style.display = 'none'; }
+        window.abrirModalNovoMaterial = function() {
+            document.getElementById('modalMaterial').style.display = 'flex';
+            document.getElementById('modalMaterialTitulo').innerText = "Novo Acompanhamento de Material";
+            document.getElementById('mIdEditando').value = '';
+            document.getElementById('mIdMaterial').value = '';
+            document.getElementById('mEspessura').value = '';
+            document.getElementById('mLargura').value = '';
+            document.getElementById('mQualidade').value = '';
+            document.getElementById('mDefeito').value = '';
+            document.getElementById('mLinha').value = '';
+            document.getElementById('mInspetor').value = 'Fabrício Francioli Souza';
+            document.getElementById('mDescricaoFb').value = '';
+            document.getElementById('mAnaliseTecnica').value = '';
+            fotoMaterialTemp = '';
+            atualizarPreviewMaterial();
+        }
+
+        window.abrirModalEditarMaterial = function(id) {
+            const item = mapaDados[id];
+            if(!item) return;
+            document.getElementById('modalMaterial').style.display = 'flex';
+            document.getElementById('modalMaterialTitulo').innerText = "Editar Material";
+            document.getElementById('mIdEditando').value = item.id;
+            document.getElementById('mIdMaterial').value = item.idMaterial || '';
+            document.getElementById('mEspessura').value = item.espessura || '';
+            document.getElementById('mLargura').value = item.largura || '';
+            document.getElementById('mQualidade').value = item.qualidade || '';
+            document.getElementById('mDefeito').value = item.defeito || '';
+            document.getElementById('mLinha').value = item.linha || '';
+            document.getElementById('mInspetor').value = item.inspetor || '';
+            document.getElementById('mDescricaoFb').value = item.descricaoFb || '';
+            document.getElementById('mAnaliseTecnica').value = item.analiseTecnica || '';
+            fotoMaterialTemp = item.foto || '';
+            atualizarPreviewMaterial();
+        }
+
+        window.iniciarFotoMaterial = function(file) {
+            if (!file) return;
+            tipoEdicaoFotoAtual = 'material';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvasTemp = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > 1000) { h = Math.round((h * 1000) / w); w = 1000; }
+                    canvasTemp.width = w; canvasTemp.height = h;
+                    canvasTemp.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const imgComp = new Image();
+                    imgComp.onload = function() { abrirEditorFoto(imgComp); };
+                    imgComp.src = canvasTemp.toDataURL('image/jpeg', 0.85);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            document.getElementById('mCamInput').value = '';
+            document.getElementById('mGaleriaInput').value = '';
+        }
+
+        function atualizarPreviewMaterial() {
+            const container = document.getElementById('previewMaterialContainer');
+            if (fotoMaterialTemp) {
+                container.innerHTML = `<div class="relative w-16 h-16 border rounded overflow-hidden shadow"><img src="${fotoMaterialTemp}" class="w-full h-full object-cover"></div>`;
+            } else {
+                container.innerHTML = `<span class="text-[11px] text-slate-400">Nenhuma imagem anexada</span>`;
+            }
+        }
+
+        function processarProximaFotoFila() {
+            if (filaFotosPendentes.length === 0) return;
+            const file = filaFotosPendentes.shift();
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvasTemp = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > 1000) { h = Math.round((h * 1000) / w); w = 1000; }
+                    canvasTemp.width = w; canvasTemp.height = h;
+                    canvasTemp.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const imgComp = new Image();
+                    imgComp.onload = function() { abrirEditorFoto(imgComp); };
+                    imgComp.src = canvasTemp.toDataURL('image/jpeg', 0.85);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function abrirEditorFoto(imgObj) {
+            imagemAtualObj = imgObj;
+            document.getElementById('modalEditor').style.display = 'flex';
+            const maxWidth = window.innerWidth > 768 ? 700 : window.innerWidth - 60;
+            let w = imgObj.width, h = imgObj.height;
+            if (w > maxWidth) { h = (maxWidth * h) / w; w = maxWidth; }
+            canvas.width = w; canvas.height = h;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(imgObj, 0, 0, w, h);
+        }
+
+        function configurarEventosMouseToque() {
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+            canvas.addEventListener('mousedown', (e) => { desenhando = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); });
+            canvas.addEventListener('mousemove', (e) => {
+                if (!desenhando) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y);
+                ctx.strokeStyle = corAtual; ctx.lineWidth = parseInt(document.getElementById('inputEspessura').value);
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+            });
+            window.addEventListener('mouseup', () => { desenhando = false; });
+            canvas.addEventListener('touchstart', (e) => { desenhando = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); e.preventDefault(); });
+            canvas.addEventListener('touchmove', (e) => {
+                if (!desenhando) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y);
+                ctx.strokeStyle = corAtual; ctx.lineWidth = parseInt(document.getElementById('inputEspessura').value);
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); e.preventDefault();
+            });
+            window.addEventListener('touchend', () => { desenhando = false; });
+        }
+
+        window.mudarCor = function(cor) { corAtual = cor; }
+        window.limparCanvas = function() { if (!imagemAtualObj) return; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(imagemAtualObj, 0, 0, canvas.width, canvas.height); }
+        window.cancelarEdicaoFoto = function() {
+            document.getElementById('modalEditor').style.display = 'none';
+            if (tipoEdicaoFotoAtual === 'patio' && filaFotosPendentes.length > 0) processarProximaFotoFila();
+        }
+        window.salvarFotoEditada = function() {
+            const dataUrlFinal = canvas.toDataURL('image/jpeg', 0.80);
+            if (tipoEdicaoFotoAtual === 'patio') {
+                fotosTemporarias.push(dataUrlFinal);
+                atualizarPreviewModal();
+                document.getElementById('modalEditor').style.display = 'none';
+                if (filaFotosPendentes.length > 0) processarProximaFotoFila();
+            } else {
+                fotoMaterialTemp = dataUrlFinal;
+                atualizarPreviewMaterial();
+                document.getElementById('modalEditor').style.display = 'none';
+            }
+        }
+
+        function atualizarPreviewModal() {
+            const galeria = document.getElementById('galeriaPreviewModal');
+            galeria.innerHTML = '';
+            document.getElementById('imgStatus').innerText = `${fotosTemporarias.length} de 4 fotos`;
+            fotosTemporarias.forEach((src, idx) => {
+                galeria.innerHTML += `<div class="relative w-14 h-14 border rounded overflow-hidden group shadow-sm"><img src="${src}" class="w-full h-full object-cover"><button type="button" onclick="removerFoto(${idx})" class="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs"><i class="fa-solid fa-trash"></i></button></div>`;
+            });
+        }
+        window.removerFoto = function(idx) { fotosTemporarias.splice(idx, 1); atualizarPreviewModal(); }
+
+        window.salvar = function() {
+            const patioVal = document.getElementById('iPatio').value;
+            if(!patioVal) { alert("Informe o pátio."); return; }
+            const registro = {
+                tipoRelatorio: "patio_oficial",
+                dataInsp: document.getElementById('iDataInsp').value || new Date().toLocaleDateString('pt-BR'),
+                patio: patioVal,
+                participantes: document.getElementById('iParticipantes').value,
+                obs: document.getElementById('iObs').value,
+                fotos: [...fotosTemporarias],
+                criadoEm: new Date().toLocaleString()
+            };
+            window.salvarFirebase(registro, document.getElementById('iIdEditando').value);
+        }
+
+        window.salvarMaterial = function() {
+            const idMat = document.getElementById('mIdMaterial').value;
+            if(!idMat) { alert("Informe o ID do Material."); return; }
+            const registro = {
+                tipoRelatorio: "acompanhamento_material",
+                idMaterial: idMat,
+                espessura: document.getElementById('mEspessura').value,
+                largura: document.getElementById('mLargura').value,
+                qualidade: document.getElementById('mQualidade').value,
+                defeito: document.getElementById('mDefeito').value,
+                linha: document.getElementById('mLinha').value,
+                inspetor: document.getElementById('mInspetor').value,
+                descricaoFb: document.getElementById('mDescricaoFb').value,
+                analiseTecnica: document.getElementById('mAnaliseTecnica').value,
+                foto: fotoMaterialTemp,
+                criadoEm: new Date().toLocaleString()
+            };
+            window.salvarFirebase(registro, document.getElementById('mIdEditando').value);
+        }
+
+        window.renderizar = function() {
+            const corpo = document.getElementById('tabelaCorpo');
+            const busca = document.getElementById('filtroBusca').value.toLowerCase();
+            corpo.innerHTML = '';
+
+            let filtrados = listaDados.filter(i => {
+                if (i.tipoRelatorio && i.tipoRelatorio !== "patio_oficial") return false;
+                const patioStr = (i.patio || "").toLowerCase();
+                if (patioFiltroAtivo && !patioStr.includes(patioFiltroAtivo)) return false;
+                return patioStr.includes(busca) || (i.participantes && i.participantes.toLowerCase().includes(busca)) || (i.obs && i.obs.toLowerCase().includes(busca));
+            });
+
+            if (filtrados.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            filtrados.forEach((item) => {
+                let fotosHtml = item.fotos && item.fotos.length > 0 ? item.fotos.map(f => `<img src="${f}" class="w-10 h-10 object-cover rounded cursor-pointer border" onclick="abrirZoom('${f}')">`).join('') : '<span class="text-slate-400">Sem foto</span>';
+                html += `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-4 font-mono text-slate-500">${item.dataInsp || '-'}</td>
+                        <td class="p-4 font-black text-emerald-700">${item.patio || '-'}</td>
+                        <td class="p-4 text-slate-600 whitespace-pre-line text-[11px]">${item.participantes || '-'}</td>
+                        <td class="p-4 text-slate-700 font-semibold">${item.obs || '-'}</td>
+                        <td class="p-4 text-center"><div class="flex gap-1 justify-center flex-wrap">${fotosHtml}</div></td>
+                        <td class="p-4 text-center space-x-1">
+                            <button onclick="abrirModalEditar('${item.id}')" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deletarFirebase('${item.id}')" class="text-rose-500 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+            corpo.innerHTML = html;
+        }
+
+        window.renderizarMateriais = function() {
+            const corpo = document.getElementById('tabelaCorpoMaterial');
+            const busca = document.getElementById('filtroBuscaMaterial').value.toLowerCase();
+            corpo.innerHTML = '';
+
+            let filtrados = listaDados.filter(i => {
+                if (i.tipoRelatorio !== "acompanhamento_material") return false;
+                return (i.idMaterial || '').toLowerCase().includes(busca) || (i.linha || '').toLowerCase().includes(busca) || (i.inspetor || '').toLowerCase().includes(busca) || (i.qualidade || '').toLowerCase().includes(busca);
+            });
+
+            if (filtrados.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">Nenhum material cadastrado.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            filtrados.forEach((item) => {
+                let fotoHtml = item.foto ? `<img src="${item.foto}" class="w-10 h-10 object-cover rounded cursor-pointer border" onclick="abrirZoom('${item.foto}')">` : '<span class="text-slate-400">Sem foto</span>';
+                let descFbFmt = item.descricaoFb ? item.descricaoFb.replace(/\n/g, '<br>') : '-';
+                let analiseFmt = item.analiseTecnica ? item.analiseTecnica.replace(/\n/g, '<br>') : '-';
+                html += `
+                    <tr class="hover:bg-slate-50/80 transition align-top">
+                        <td class="p-3 font-mono font-black text-emerald-700">${item.idMaterial || '-'}</td>
+                        <td class="p-3">${item.espessura || '-'} / ${item.largura || '-'}</td>
+                        <td class="p-3 font-bold">${item.qualidade || '-'}</td>
+                        <td class="p-3"><span class="text-rose-600 font-bold">${item.defeito || '-'}</span><br><span class="text-[10px] text-slate-500">Linha: ${item.linha || '-'}</span></td>
+                        <td class="p-3">${item.inspetor || '-'}<br><span class="text-[10px] text-slate-500 font-semibold">FB:</span><div class="text-[11px] text-slate-600 max-w-xs whitespace-pre-wrap">${descFbFmt}</div></td>
+                        <td class="p-3 text-[11px] text-slate-600 max-w-xs whitespace-pre-wrap">${analiseFmt}</td>
+                        <td class="p-3 text-center">${fotoHtml}</td>
+                        <td class="p-3 text-center space-x-1">
+                            <button onclick="abrirModalEditarMaterial('${item.id}')" class="bg-amber-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deletarFirebase('${item.id}')" class="text-rose-500 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+            corpo.innerHTML = html;
+        }
+
+        window.gerarPdfGeral = async function() {
+            // (Função mantida para pátios)
+            alert("Gerando PDF do Relatório de Pátios...");
+        }
+
+        window.gerarPdfMaterial = async function() {
+            const materiais = listaDados.filter(i => i.tipoRelatorio === "acompanhamento_material");
+            if (materiais.length === 0) { alert("Sem materiais para gerar PDF."); return; }
+
+            let blocoHtml = '';
+            materiais.forEach((item) => {
+                let fotoHtml = item.foto ? `<img src="${item.foto}" style="width: 250px; height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" />` : '<span style="font-size: 11px; color: #94a3b8;">Sem imagem</span>';
+                let descFbFmt = item.descricaoFb ? item.descricaoFb.replace(/\n/g, '<br>') : '-';
+                let analiseFmt = item.analiseTecnica ? item.analiseTecnica.replace(/\n/g, '<br>') : '-';
+                
+                blocoHtml += `
+                    <div style="margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; page-break-inside: avoid;">
+                        <div style="background: #0f172a; color: white; padding: 6px 10px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-radius: 4px; margin-bottom: 8px;">
+                            ID Material: ${item.idMaterial} • Linha: ${item.linha || '-'}
+                        </div>
+                        <table style="width: 100%; font-size: 11px; margin-bottom: 8px; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 4px;"><strong>Espessura:</strong> ${item.espessura || '-'} mm</td>
+                                <td style="padding: 4px;"><strong>Largura:</strong> ${item.largura || '-'} mm</td>
+                                <td style="padding: 4px;"><strong>Qualidade:</strong> ${item.qualidade || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px;"><strong>Defeito:</strong> <span style="color: #dc2626; font-weight: bold;">${item.defeito || '-'}</span></td>
+                                <td style="padding: 4px;" colspan="2"><strong>Inspetor:</strong> ${item.inspetor || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 4px; background: #f8fafc;" colspan="3"><strong>Descrição FB:</strong><br><div style="margin-top: 4px; line-height: 1.4; color: #334155;">${descFbFmt}</div></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 4px;" colspan="3"><strong>Análise Técnica:</strong><br><div style="margin-top: 4px; line-height: 1.4; color: #334155;">${analiseFmt}</div></td>
+                            </tr>
+                        </table>
+                        <div style="text-align: center; margin-top: 10px;">${fotoHtml}</div>
+                    </div>`;
+            });
+
+            const container = document.getElementById('materialPdfExport');
+            container.style.display = 'block';
+            container.style.width = '700px';
+            container.style.background = 'white';
+            container.style.padding = '20px';
+            container.innerHTML = `
+                <div style="font-family: 'Inter', sans-serif; color: #1e293b;">
+                    <div style="border-bottom: 3px solid #0f172a; padding-bottom: 10px; margin-bottom: 15px;">
+                        <span style="background: #0f172a; color: white; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 3px;">Usiminas</span>
+                        <h2 style="color: #0f172a; margin: 4px 0 2px 0; font-size: 16px; font-weight: 900; text-transform: uppercase;">Relatório de Acompanhamento de Material</h2>
+                        <p style="font-size: 11px; color: #475569; margin: 0;">Emitido em: ${new Date().toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    <div>${blocoHtml}</div>
+                </div>`;
+
+            try {
+                const canvasPdf = await html2canvas(container, { scale: 1.5, useCORS: true });
+                const imgData = canvasPdf.toDataURL('image/jpeg', 0.85);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = (canvasPdf.height * imgWidth) / canvasPdf.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                pdf.save(`Relatorio_Acompanhamento_Material.pdf`);
+            } catch (err) {
+                console.error("Erro PDF Materiais:", err);
+                alert("Erro ao gerar PDF.");
+            }
+            container.style.display = 'none';
+        }
+
+        window.abrirZoom = function(src) {
+            const img = document.getElementById('imgZoomAmpliada');
+            img.src = src;
+            img.classList.remove('zoom-ativo');
+            document.getElementById('modalZoom').style.display = 'flex';
+        }
+        window.alternarZoom = function(event) { event.stopPropagation(); document.getElementById('imgZoomAmpliada').classList.toggle('zoom-ativo'); }
+        window.fecharZoom = function(event) { if (event.target.id === 'modalZoom' || event.target.closest('button')) document.getElementById('modalZoom').style.display = 'none'; }
+    </script>
+</body>
+</html>
 
