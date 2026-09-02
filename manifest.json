@@ -1,8 +1,8 @@
 {
-"name": "Usiminas | Qualidade & Inspeção",
-"short_name": "Usiminas App",
-"description": "Aplicativo para inspeção de pátios, acompanhamento de materiais e gestão da qualidade.",
-"start_url": "./index.html",
+"name": "Usiminas Qualidade e Inspecao",
+"short_name": "Usiminas",
+"description": "Aplicativo para inspecao de patios, acompanhamento de materiais e gestao da qualidade.",
+"start_url": "./",
 "display": "standalone",
 "background_color": "#0f172a",
 "theme_color": "#0f172a",
