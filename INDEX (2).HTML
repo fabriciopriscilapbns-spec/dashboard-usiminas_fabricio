@@ -3,873 +3,853 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usiminas | Relatório de Inspeção & Acompanhamento</title>
-    
-    <!-- Configurações do PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-          .then(() => console.log("Service Worker registrado com sucesso!"))
-          .catch((err) => console.log("Erro ao registrar Service Worker:", err));
-      }
-    </script>
-
+    <title>Usiminas | Dashboard Executivo - Ishikawa, Rastreabilidade & Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Biblioteca para Relatórios em PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <!-- Firebase SDKs e Lógica Unificada -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, collection, addDoc, updateDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBgygbr224GsADrAUMHpf_0ORD3VpImn3A",
-            authDomain: "fabricio-usina.firebaseapp.com",
-            projectId: "fabricio-usina",
-            storageBucket: "fabricio-usina.firebasestorage.app",
-            messagingSenderId: "70323440326",
-            appId: "1:70323440326:web:c80c79ae8635f1e51f25c7",
-            measurementId: "G-E8NVS89LMW"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = initializeFirestore(app, {
-            localCache: persistentLocalCache({
-                tabManager: persistentSingleTabManager()
-            })
-        });
-
-        const NOME_COLECAO = "ocorrencias";
-
-        window.salvarFirebase = async function(registro, idEditando) {
-            try {
-                if (idEditando && idEditando.trim() !== "") {
-                    await updateDoc(doc(db, NOME_COLECAO, idEditando), registro);
-                    alert("Registro atualizado com sucesso!");
-                } else {
-                    await addDoc(collection(db, NOME_COLECAO), registro);
-                    alert("Registro salvo com sucesso!");
-                }
-                window.fecharModal();
-                window.fecharModalMaterial();
-            } catch (e) {
-                console.error("Erro ao salvar:", e);
-                alert("Erro ao salvar no banco de dados.");
-            }
-        };
-
-        window.deletarFirebase = async function(id) {
-            if (confirm("Deseja realmente excluir este registro?")) {
-                try {
-                    await deleteDoc(doc(db, NOME_COLECAO, id));
-                } catch (e) {
-                    console.error("Erro ao deletar:", e);
-                }
-            }
-        };
-
-        window.carregarDadosTempoReal = function(callback) {
-            const q = collection(db, NOME_COLECAO);
-            onSnapshot(q, (querySnapshot) => {
-                let lista = [];
-                querySnapshot.forEach((doc) => {
-                    lista.push({ id: doc.id, ...doc.data() });
-                });
-                callback(lista);
-            }, (error) => {
-                console.error("Erro ao puxar dados:", error);
-            });
-        };
-    </script>
-
+    <!-- SheetJS para leitura de Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js e Plugin de Rótulos de Dados -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <!-- Firebase SDKs via CDN Oficial -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
-        .modal-foto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; z-index: 2000; overflow: auto; }
-        .modal-editor { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 3000; }
-        
-        #imgZoomAmpliada {
-            transition: transform 0.2s ease;
-            cursor: zoom-in;
-            transform: scale(1);
-            max-height: 90vh;
-            max-width: 90vw;
-            object-fit: contain;
-            user-select: none;
-        }
-        #imgZoomAmpliada.zoom-ativo {
-            transform: scale(2.2);
-            cursor: zoom-out;
-        }
-        #canvasEditor {
-            max-height: 70vh;
-            max-width: 90vw;
-            touch-action: none;
-            cursor: crosshair;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
     </style>
 </head>
-<body class="p-6">
+<body class="p-3 md:p-6">
 
     <!-- HEADER EXECUTIVO -->
-    <header class="bg-[#0f172a] text-white p-5 rounded-2xl shadow-xl mb-6 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-emerald-600">
+    <header class="bg-[#0f172a] text-white p-4 md:p-5 rounded-2xl shadow-xl mb-6 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-emerald-600">
         <div>
             <div class="flex items-center gap-2">
-                <span class="bg-emerald-600 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Usiminas</span>
-                <span class="text-xs text-slate-300 font-medium">Elaborado por: Fabrício Francioli Souza - Unidade Técnica da Aciaria</span>
+                <!-- Dê um duplo clique rápido na logo USIMINAS para desbloquear e revelar o botão de copiar -->
+                <span ondblclick="revelarBotaoCopiar()" class="bg-emerald-600 text-white text-[10px] md:text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider cursor-pointer select-none" title="Área restrita">Usiminas</span>
+                <span class="text-[10px] md:text-xs text-slate-300 font-medium">Elaborado por Fabrício Francioli Souza</span>
             </div>
-            <h1 class="text-2xl font-black uppercase tracking-tight mt-1">Gestão de Qualidade & Inspeção</h1>
-            <p class="text-xs text-slate-400 mt-0.5">Inspeção de Pátios & Acompanhamento de Material</p>
+            <h1 class="text-lg md:text-2xl font-black uppercase tracking-tight mt-1">Investigação de Recusas - Ishikawa & Rastreabilidade</h1>
+            <p class="text-[10px] md:text-xs text-slate-400 mt-0.5">Firebase Cloud (`fabricio-usina`) — Atualizado em: <span id="lblAtualizado">15/09/2026</span></p>
         </div>
-        <div class="flex gap-2 flex-wrap">
-            <button onclick="mudarPagina('patios')" id="navPatios" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer">
-                <i class="fa-solid fa-industry"></i> Pátios
+        
+        <!-- BOTÕES DE CONTROLE -->
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+            <!-- Botão de Copiar Código (Oculto por padrão, revelado com duplo clique na logo USIMINAS com senha 123456) -->
+            <button id="btnCopiarSecreto" onclick="copiarCodigoBase()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-2 md:px-4 md:py-2.5 rounded-xl shadow transition hidden items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-code"></i> Copiar Código Base
             </button>
-            <button onclick="mudarPagina('materiais')" id="navMateriais" class="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer hover:bg-slate-700">
-                <i class="fa-solid fa-boxes-stacked"></i> Acompanhamento de Material
+            <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-3 py-2 md:px-4 md:py-2.5 rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-print"></i> PDF / Imprimir
             </button>
+            <!-- BOTÃO DE ANEXAR PLANILHAS E SALVAR NO FIREBASE -->
+            <label class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Anexar Planilhas & Salvar no Firebase
+                <input type="file" id="fileExcelMulti" accept=".xlsx, .xls" multiple class="hidden" onchange="processarMultiplasPlanilhas(event)">
+            </label>
         </div>
     </header>
 
-    <!-- ================= PÁGINA 1: PÁTIOS ================= -->
-    <div id="paginaPatios" class="max-w-7xl mx-auto space-y-6">
-        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex gap-2 overflow-x-auto" id="containerAbasPatio">
-                <button onclick="filtrarPorPatio('')" id="aba-todas" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition">
-                    <i class="fa-solid fa-border-all mr-1"></i> Todos os Pátios
-                </button>
-                <button onclick="filtrarPorPatio('29')" id="aba-29" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition">
-                    <i class="fa-solid fa-industry mr-1 text-emerald-600"></i> Pátio 29
-                </button>
-                <button onclick="filtrarPorPatio('96')" id="aba-96" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition">
-                    <i class="fa-solid fa-industry mr-1 text-emerald-600"></i> Pátio 96
-                </button>
+    <main class="max-w-7xl mx-auto space-y-6">
+
+        <!-- PAINEL DE GRÁFICOS ANALÍTICOS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Gráfico 1: Barras Horizontais por Defeito -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between">
+                <div class="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-black text-xs text-slate-700 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar text-emerald-600"></i> Toneladas por Defeito
+                    </h3>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Horizontal</span>
+                </div>
+                <div class="p-4 relative h-60 md:h-64 flex items-center justify-center">
+                    <canvas id="chartDefeito"></canvas>
+                </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="gerarPdfGeral()" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-blue-500 transition flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-file-pdf"></i> PDF Pátios
-                </button>
-                <button onclick="abrirModalNovo()" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-emerald-500 transition flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-camera-retro"></i> Novo Relatório
-                </button>
+
+            <!-- Gráfico 2: Toneladas por Cód. Fabricação (Top 8) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between">
+                <div class="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-black text-xs text-slate-700 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-emerald-600"></i> Toneladas por Cód. Fabricação
+                    </h3>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Top 8</span>
+                </div>
+                <div class="p-4 relative h-60 md:h-64 flex items-center justify-center">
+                    <canvas id="chartFabricacao"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 3: Toneladas por Linha / Setor -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between">
+                <div class="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-black text-xs text-slate-800 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-emerald-600"></i> Toneladas por Linha (Setor)
+                    </h3>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Completo</span>
+                </div>
+                <div class="p-4 relative h-60 md:h-64 flex items-center justify-center">
+                    <canvas id="chartLinha"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3 bg-slate-50/50">
-                <h3 class="font-bold text-slate-700 text-sm uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-clipboard-list text-emerald-600"></i> Histórico Organizado por Pátio
+        <!-- SELETOR CONSOLIDADO DE RECUSAS -->
+        <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="w-full md:w-auto">
+                <h3 class="font-bold text-slate-700 text-xs md:text-sm uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-database text-emerald-600"></i> Selecionar Ocorrência (Mais Recente Primeiro)
                 </h3>
-                <div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                    <input type="date" id="filtroData" onchange="renderizar()" class="p-2 text-xs border rounded-lg w-full sm:w-auto bg-white text-slate-600 font-medium">
-                    <input type="text" id="filtroBusca" onkeyup="renderizar()" placeholder="Filtrar por pátio, participante ou observação..." class="p-2 text-xs border rounded-lg w-full sm:w-72 bg-white">
-                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5" id="badgeContagem">Conectando ao Firebase Firestore...</p>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="text-[11px] uppercase bg-slate-100 text-slate-600 font-extrabold tracking-wider">
-                        <tr>
-                            <th class="p-4">Data / Hora</th>
-                            <th class="p-4">Pátio(s)</th>
-                            <th class="p-4">Participantes</th>
-                            <th class="p-4">Observação / Defeito</th>
-                            <th class="p-4 text-center">Fotos com Marcação</th>
-                            <th class="p-4 text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaCorpo" class="divide-y divide-slate-100 text-xs font-medium text-slate-700"></tbody>
-                </table>
+            <div class="w-full md:w-auto">
+                <select id="selectRegistro" onchange="mudarRegistro()" class="p-2.5 text-xs border rounded-xl w-full md:w-[600px] bg-slate-50 font-bold text-slate-700 cursor-pointer shadow-sm">
+                </select>
             </div>
         </div>
-    </div>
 
-    <!-- ================= PÁGINA 2: ACOMPANHAMENTO DE MATERIAL ================= -->
-    <div id="paginaMateriais" class="max-w-7xl mx-auto space-y-6 hidden">
-        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+        <!-- RELATÓRIO DE ANÁLISE -->
+        <div class="bg-white text-slate-800 p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-2 border-l-4 border-emerald-600">
             <div class="flex items-center gap-2">
-                <h3 class="font-black text-slate-800 text-sm uppercase"><i class="fa-solid fa-cubes text-emerald-600 mr-1"></i> Controle de Materiais e Defeitos</h3>
+                <i class="fa-solid fa-brain text-emerald-600"></i>
+                <h3 class="font-black text-xs md:text-sm uppercase tracking-wide text-slate-900">Relatório de Análise & Rota Operacional</h3>
             </div>
-            <div class="flex gap-2">
-                <button onclick="gerarPdfMaterial()" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-blue-500 transition flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-file-pdf"></i> PDF Materiais
-                </button>
-                <button onclick="abrirModalNovoMaterial()" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:bg-emerald-500 transition flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-plus"></i> Novo Material
-                </button>
+            <p id="relatorioTexto" class="text-xs text-slate-600 leading-relaxed font-medium">
+                Carregando análise...
+            </p>
+        </div>
+
+        <!-- DIAGRAMA ISHIKAWA -->
+        <div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto relative">
+            <div class="min-w-[1100px] w-full relative h-[560px] flex items-center">
+                
+                <div class="absolute left-10 right-28 h-3 bg-slate-900 top-1/2 -translate-y-1/2 rounded-full shadow-inner"></div>
+                
+                <div class="absolute right-0 top-1/2 -translate-y-1/2 bg-[#0f172a] text-white p-5 rounded-2xl shadow-2xl border-4 border-emerald-600 text-center w-56 z-20">
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Defeito Apontado</span>
+                    <h2 id="viewDefeito" class="text-2xl font-black uppercase mt-1 tracking-tight">-</h2>
+                    <span id="viewPlacaCabeca" class="text-xs text-slate-300 block mt-1 font-mono">Placa: -</span>
+                    <span id="viewBadgeTipo" class="mt-2.5 inline-block px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-500 text-slate-900 shadow">-</span>
+                </div>
+
+                <div class="absolute left-16 top-4 w-72 bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-md">
+                    <div class="absolute -bottom-16 left-10 w-1 h-16 bg-slate-400 rotate-45 origin-top"></div>
+                    <h4 class="font-black text-xs text-slate-800 uppercase border-b pb-2 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-industry text-emerald-600"></i> Máquinas / Equipamentos
+                    </h4>
+                    <ul class="space-y-1.5 text-[11px] text-slate-600 font-medium">
+                        <li><strong>Nº da Corrida:</strong> <span id="viewCorridaBox" class="font-mono text-emerald-700 font-bold">-</span></li>
+                        <li><strong>Nº da Placa:</strong> <span id="viewPlacaBox" class="font-mono text-emerald-700 font-bold">-</span></li>
+                        <li><strong>Nº Volume (Bobina):</strong> <span id="viewVolume" class="font-mono text-slate-700">-</span></li>
+                        <li><strong>Forno Contínuo:</strong> <span id="viewForno" class="font-mono text-slate-700">-</span></li>
+                        <li><strong>Veio Lingotamento:</strong> <span id="viewVeio" class="font-mono text-slate-700">-</span></li>
+                    </ul>
+                </div>
+
+                <div class="absolute left-[410px] top-4 w-72 bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-md">
+                    <div class="absolute -bottom-16 left-10 w-1 h-16 bg-slate-400 rotate-45 origin-top"></div>
+                    <h4 class="font-black text-xs text-slate-800 uppercase border-b pb-2 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-cogs text-emerald-600"></i> Anormalidades da Placa
+                    </h4>
+                    <ul class="space-y-1 text-[11px] text-slate-600 font-medium">
+                        <li><strong>Anormalidades Operacionais:</strong> <div id="viewAnomalia" class="font-bold text-rose-600 text-[10px] mt-1 leading-tight max-h-24 overflow-y-auto bg-white p-2 border rounded">-</div></li>
+                    </ul>
+                </div>
+
+                <div class="absolute left-[760px] top-4 w-72 bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-md">
+                    <div class="absolute -bottom-16 left-10 w-1 h-16 bg-slate-400 rotate-45 origin-top"></div>
+                    <h4 class="font-black text-xs text-slate-800 uppercase border-b pb-2 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-emerald-600"></i> Escarfagem
+                    </h4>
+                    <ul class="space-y-1.5 text-[11px] text-slate-600 font-medium">
+                        <li><strong>Placa Escarfada?:</strong> <span id="viewEscSimNao" class="font-bold text-slate-800">-</span></li>
+                        <li><strong>Velocidade Face A / B:</strong> <span id="viewVelFace" class="font-mono text-slate-700">-</span></li>
+                        <li><strong>Defeitos Insp. Face A:</strong> <span id="viewDefFaceA" class="font-bold text-rose-600">-</span></li>
+                        <li><strong>Defeitos Insp. Face B:</strong> <span id="viewDefFaceB" class="font-bold text-rose-600">-</span></li>
+                    </ul>
+                </div>
+
+                <div class="absolute left-16 bottom-4 w-72 bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-md">
+                    <div class="absolute -top-16 left-10 w-1 h-16 bg-slate-400 -rotate-45 origin-bottom"></div>
+                    <h4 class="font-black text-xs text-slate-800 uppercase border-b pb-2 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-user-check text-emerald-600"></i> Especificações & Qualidade
+                    </h4>
+                    <ul class="space-y-1.5 text-[11px] text-slate-600 font-medium">
+                        <li><strong>Qualidade:</strong> <span id="viewQualidade" class="font-bold text-slate-800">-</span></li>
+                        <li><strong>Cód. Fabricação:</strong> <span id="viewCodFabricacao" class="font-mono text-blue-700 font-bold">-</span></li>
+                        <li><strong>Norma de Inspeção:</strong> <span id="viewNorma" class="font-mono text-emerald-700 font-bold">-</span></li>
+                        <li><strong>Esp. / Larg. (mm):</strong> <span id="viewDimensoes" class="font-mono text-slate-700">-</span></li>
+                    </ul>
+                </div>
+
+                <div class="absolute left-[410px] bottom-4 w-72 bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-md">
+                    <div class="absolute -top-16 left-10 w-1 h-16 bg-slate-400 -rotate-45 origin-bottom"></div>
+                    <h4 class="font-black text-xs text-slate-800 uppercase border-b pb-2 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-emerald-600"></i> Rastreabilidade
+                    </h4>
+                    <ul class="space-y-1.5 text-[11px] text-slate-600 font-medium">
+                        <li><strong>Data do Evento:</strong> <span id="viewData" class="font-mono text-indigo-700 font-bold">-</span></li>
+                        <li><strong>Local da Queda:</strong> <span id="viewLocalQueda" class="font-mono text-indigo-700 font-bold">-</span></li>
+                        <li><strong>Peso (ton):</strong> <span id="viewPeso" class="font-mono text-slate-700">-</span></li>
+                    </ul>
+                </div>
+
+                <div class="absolute left-[760px] bottom-4 w-72 bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-md">
+                    <div class="absolute -top-16 left-10 w-1 h-16 bg-slate-400 -rotate-45 origin-bottom"></div>
+                    <h4 class="font-black text-xs text-slate-800 uppercase border-b pb-2 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-route text-emerald-600"></i> Vácuo & Corrida
+                    </h4>
+                    <ul class="space-y-1.5 text-[11px] text-slate-600 font-medium">
+                        <li><strong>Tempo de Vácuo:</strong> <span id="viewTempoVacuo" class="font-mono text-blue-600 font-bold">-</span></li>
+                        <li><strong>Rota da Corrida:</strong> <span id="viewRotaCorrida" class="font-mono text-indigo-700 font-bold block mt-0.5">-</span></li>
+                    </ul>
+                </div>
+
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <input type="text" id="filtroBuscaMaterial" onkeyup="renderizarMateriais()" placeholder="Filtrar por ID Material, Linha, Inspetor ou Qualidade..." class="p-2 text-xs border rounded-lg w-full sm:w-80 bg-white">
+        <!-- SEÇÃO PLTCM -->
+        <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <span class="bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">PLTCM</span>
+                <h3 class="font-black text-slate-800 text-sm md:text-base uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-industry text-emerald-600"></i> Linha PLTCM (Anterior / Alvo / Posterior)
+                </h3>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="text-[11px] uppercase bg-slate-100 text-slate-600 font-extrabold tracking-wider">
-                        <tr>
-                            <th class="p-3">ID Material</th>
-                            <th class="p-3">Esp / Larg (mm)</th>
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                <table class="w-full text-left text-xs border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-slate-100/90 text-slate-600 uppercase font-bold text-[11px] border-b border-slate-200">
+                            <th class="p-3 text-center">Posição</th>
+                            <th class="p-3">N° Volume (IDT)</th>
+                            <th class="p-3 text-center">Corrida</th>
+                            <th class="p-3 text-center">Placa</th>
                             <th class="p-3">Qualidade</th>
-                            <th class="p-3">Defeito / Linha</th>
-                            <th class="p-3">Inspetor / FB</th>
-                            <th class="p-3">Análise Técnica</th>
-                            <th class="p-3 text-center">Foto</th>
-                            <th class="p-3 text-center">Ações</th>
+                            <th class="p-3 text-center">Esp. / Larg.</th>
+                            <th class="p-3 text-center">Peso (t)</th>
+                            <th class="p-3 text-center">Escarfada?</th>
+                            <th class="p-3">Data / Hora PLTCM</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelaCorpoMaterial" class="divide-y divide-slate-100 text-xs font-medium text-slate-700"></tbody>
+                    <tbody id="tabelaPltcmCorpo" class="divide-y divide-slate-100 text-slate-700 bg-white">
+                    </tbody>
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL DE CRIAÇÃO / EDIÇÃO DE RELATÓRIO DE PÁTIO -->
-    <div id="modal" class="modal">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h2 id="modalTitulo" class="font-black text-slate-800 text-lg uppercase"><i class="fa-solid fa-file-invoice text-emerald-600 mr-2"></i> Criar Relatório de Inspeção</h2>
-                <button onclick="fecharModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <!-- SEÇÃO CGL -->
+        <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <span class="bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">CGL</span>
+                <h3 class="font-black text-slate-800 text-sm md:text-base uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-fire-flame-curved text-emerald-600"></i> Linha CGL (Anterior / Alvo / Posterior)
+                </h3>
             </div>
-            
-            <input type="hidden" id="iIdEditando">
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Data da Inspeção</label>
-                    <input type="text" id="iDataInsp" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Pátio(s) Inspecionado(s)</label>
-                    <input type="text" id="iPatio" placeholder="Ex: 29 ou 96" class="w-full p-2.5 border rounded-lg bg-slate-50 font-bold text-emerald-700">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Participantes da Inspeção</label>
-                    <textarea id="iParticipantes" rows="3" class="w-full p-2.5 border rounded-lg bg-slate-50 leading-relaxed"></textarea>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Observação Geral / Condição</label>
-                    <input type="text" id="iObs" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                
-                <div class="md:col-span-2 bg-slate-50 p-4 rounded-xl border-2 border-dashed border-emerald-300 text-center relative">
-                    <input type="file" id="iCamInput" accept="image/*" capture="environment" class="hidden" onchange="iniciarFilaFotos(this.files)">
-                    <input type="file" id="iGaleriaInput" accept="image/*" multiple class="hidden" onchange="iniciarFilaFotos(this.files)">
-                    <div class="flex flex-col items-center justify-center space-y-2">
-                        <i class="fa-solid fa-camera text-emerald-600 text-2xl"></i>
-                        <span class="text-xs font-bold text-slate-700">Adicione até <span class="text-emerald-600 font-black">4 fotos</span>:</span>
-                        <div class="flex gap-2 justify-center flex-wrap">
-                            <button type="button" onclick="document.getElementById('iGaleriaInput').click()" class="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-slate-600 cursor-pointer">Galeria</button>
-                            <button type="button" onclick="document.getElementById('iCamInput').click()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-emerald-500 cursor-pointer">Câmera</button>
-                        </div>
-                        <span id="imgStatus" class="text-[11px] text-slate-500 font-semibold mt-1">0 de 4 fotos</span>
-                    </div>
-                    <div id="galeriaPreviewModal" class="mt-3 flex flex-wrap gap-2 justify-center"></div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-3 pt-3 border-t">
-                <button onclick="fecharModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">Cancelar</button>
-                <button onclick="salvar()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer">Salvar</button>
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                <table class="w-full text-left text-xs border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-slate-100/90 text-slate-600 uppercase font-bold text-[11px] border-b border-slate-200">
+                            <th class="p-3 text-center">Posição</th>
+                            <th class="p-3">N° Volume (IDT)</th>
+                            <th class="p-3 text-center">Corrida</th>
+                            <th class="p-3 text-center">Placa</th>
+                            <th class="p-3">Qualidade</th>
+                            <th class="p-3 text-center">Esp. / Larg.</th>
+                            <th class="p-3 text-center">Peso (t)</th>
+                            <th class="p-3 text-center">Escarfada?</th>
+                            <th class="p-3">Data / Hora CGL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCglCorpo" class="divide-y divide-slate-100 text-slate-700 bg-white">
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL DE CRIAÇÃO / EDIÇÃO DE MATERIAL -->
-    <div id="modalMaterial" class="modal">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h2 id="modalMaterialTitulo" class="font-black text-slate-800 text-lg uppercase"><i class="fa-solid fa-boxes-stacked text-emerald-600 mr-2"></i> Acompanhamento de Material</h2>
-                <button onclick="fecharModalMaterial()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            
-            <input type="hidden" id="mIdEditando">
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">ID Material</label>
-                    <input type="text" id="mIdMaterial" placeholder="Ex: PL-89321" class="w-full p-2.5 border rounded-lg bg-slate-50 font-bold">
-                </div>
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Espessura (mm)</label>
-                    <input type="text" id="mEspessura" placeholder="Ex: 25.4" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Largura (mm)</label>
-                    <input type="text" id="mLargura" placeholder="Ex: 1500" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Qualidade do Aço</label>
-                    <input type="text" id="mQualidade" placeholder="Ex: ASTM A36" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Defeito</label>
-                    <input type="text" id="mDefeito" placeholder="Ex: Rebarba / Trinca" class="w-full p-2.5 border rounded-lg bg-slate-50 font-bold text-rose-600">
-                </div>
-                <div>
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Linha</label>
-                    <input type="text" id="mLinha" placeholder="Ex: Linha 2" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                <div class="md:col-span-3">
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Inspetor</label>
-                    <input type="text" id="mInspetor" placeholder="Ex: Fabrício F." class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                
-                <!-- CAMPO DE DESCRIÇÃO FB AMPLIADO -->
-                <div class="md:col-span-3">
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Descrição FB (Espaço ampliado para texto longo)</label>
-                    <textarea id="mDescricaoFb" rows="5" placeholder="Insira o texto detalhado/longo da descrição FB aqui..." class="w-full p-3 border rounded-lg bg-slate-50 leading-relaxed"></textarea>
-                </div>
-
-                <!-- CAMPO DE ANÁLISE TÉCNICA AMPLIADO -->
-                <div class="md:col-span-3">
-                    <label class="font-bold text-slate-500 uppercase block mb-1">Análise Técnica</label>
-                    <textarea id="mAnaliseTecnica" rows="4" placeholder="Parecer técnico detalhado..." class="w-full p-3 border rounded-lg bg-slate-50 leading-relaxed"></textarea>
-                </div>
-                
-                <div class="md:col-span-3 bg-slate-50 p-4 rounded-xl border-2 border-dashed border-emerald-300 text-center relative">
-                    <input type="file" id="mCamInput" accept="image/*" capture="environment" class="hidden" onchange="iniciarFotoMaterial(this.files[0])">
-                    <input type="file" id="mGaleriaInput" accept="image/*" class="hidden" onchange="iniciarFotoMaterial(this.files[0])">
-                    <div class="flex flex-col items-center justify-center space-y-2">
-                        <i class="fa-solid fa-camera text-emerald-600 text-2xl"></i>
-                        <span class="text-xs font-bold text-slate-700">Anexar Imagem do Defeito:</span>
-                        <div class="flex gap-2 justify-center">
-                            <button type="button" onclick="document.getElementById('mGaleriaInput').click()" class="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer">Galeria</button>
-                            <button type="button" onclick="document.getElementById('mCamInput').click()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer">Câmera</button>
-                        </div>
-                    </div>
-                    <div id="previewMaterialContainer" class="mt-3 flex justify-center"></div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-3 pt-3 border-t">
-                <button onclick="fecharModalMaterial()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">Cancelar</button>
-                <button onclick="salvarMaterial()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer">Salvar Material</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL EDITOR DE FOTO (CIRCULAR DEFEITO) -->
-    <div id="modalEditor" class="modal-editor">
-        <div class="bg-slate-900 p-5 rounded-2xl flex flex-col items-center max-w-3xl w-full mx-4 border border-slate-700 shadow-2xl">
-            <div class="flex justify-between items-center w-full mb-3 text-white">
-                <div>
-                    <h3 class="font-black text-sm uppercase"><i class="fa-solid fa-pen-nib text-emerald-400 mr-1"></i> Circular Defeito na Foto</h3>
-                    <p class="text-[11px] text-slate-400">Desenhe ao redor da falha/defeito encontrado.</p>
-                </div>
-                <button onclick="cancelarEdicaoFoto()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <div class="flex items-center gap-3 mb-3 bg-slate-800 p-2.5 rounded-xl border border-slate-700 w-full justify-between flex-wrap text-xs">
-                <div class="flex items-center gap-2">
-                    <span class="text-slate-300 font-bold">Cor:</span>
-                    <button type="button" onclick="mudarCor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 border-2 border-white shadow cursor-pointer color-btn" data-color="#ef4444"></button>
-                    <button type="button" onclick="mudarCor('#eab308')" class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-transparent shadow cursor-pointer color-btn" data-color="#eab308"></button>
-                    <button type="button" onclick="mudarCor('#22c55e')" class="w-6 h-6 rounded-full bg-green-500 border-2 border-transparent shadow cursor-pointer color-btn" data-color="#22c55e"></button>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-slate-300 font-bold">Espessura:</span>
-                    <input type="range" id="inputEspessura" min="3" max="15" value="6" class="cursor-pointer accent-emerald-500 w-24">
-                </div>
-                <div>
-                    <button type="button" onclick="limparCanvas()" class="bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold cursor-pointer">Limpar</button>
-                </div>
-            </div>
-
-            <div class="relative overflow-hidden flex justify-center bg-black rounded-lg border border-slate-700 mb-4 w-full">
-                <canvas id="canvasEditor"></canvas>
-            </div>
-
-            <div class="flex justify-end gap-3 w-full">
-                <button type="button" onclick="cancelarEdicaoFoto()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold cursor-pointer">Descartar</button>
-                <button type="button" onclick="salvarFotoEditada()" class="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Concluir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE ZOOM -->
-    <div id="modalZoom" class="modal-foto" onclick="fecharZoom(event)">
-        <div class="absolute top-4 right-4 z-50">
-            <button onclick="fecharZoom(event)" class="bg-rose-600 text-white w-8 h-8 rounded-lg font-bold shadow flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="w-full h-full flex items-center justify-center p-4">
-            <img id="imgZoomAmpliada" onclick="alternarZoom(event)" src="https://placehold.co/600x400/png">
-        </div>
-    </div>
-
-    <!-- ÁREAS OCULTAS PARA PDF -->
-    <div id="relatorioPdfExport" style="display:none;"></div>
-    <div id="materialPdfExport" style="display:none;"></div>
+    </main>
 
     <script>
-        let listaDados = [];
-        let mapaDados = {};
-        let fotosTemporarias = [];
-        let filaFotosPendentes = [];
-        let imagemAtualObj = null;
-        let patioFiltroAtivo = '';
-        let paginaAtual = 'patios';
-        
-        let fotoMaterialTemp = '';
-        let tipoEdicaoFotoAtual = 'patio';
-
-        let canvas, ctx;
-        let desenhando = false;
-        let corAtual = '#ef4444';
-
-        function iniciarCarregamento() {
-            if (window.carregarDadosTempoReal) {
-                window.carregarDadosTempoReal((dados) => {
-                    listaDados = dados;
-                    mapaDados = {};
-                    dados.forEach(d => { mapaDados[d.id] = d; });
-                    renderizar();
-                    renderizarMateriais();
-                });
-            } else {
-                setTimeout(iniciarCarregamento, 100);
-            }
-
-            canvas = document.getElementById('canvasEditor');
-            ctx = canvas.getContext('2d');
-            configurarEventosMouseToque();
-        }
-        window.addEventListener('DOMContentLoaded', iniciarCarregamento);
-
-        window.mudarPagina = function(pag) {
-            paginaAtual = pag;
-            const pPatios = document.getElementById('paginaPatios');
-            const pMat = document.getElementById('paginaMateriais');
-            const navP = document.getElementById('navPatios');
-            const navM = document.getElementById('navMateriais');
-
-            if (pag === 'patios') {
-                pPatios.classList.remove('hidden');
-                pMat.classList.add('hidden');
-                navP.className = "bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer";
-                navM.className = "bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer hover:bg-slate-700";
-            } else {
-                pPatios.classList.add('hidden');
-                pMat.classList.remove('hidden');
-                navM.className = "bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer";
-                navP.className = "bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-2 cursor-pointer hover:bg-slate-700";
-            }
-        }
-
-        window.filtrarPorPatio = function(patio) {
-            patioFiltroAtivo = patio;
-            const abaTodas = document.getElementById('aba-todas');
-            const aba29 = document.getElementById('aba-29');
-            const aba96 = document.getElementById('aba-96');
-
-            if (abaTodas && aba29 && aba96) {
-                abaTodas.className = patio === '' ? 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition' : 'px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition';
-                aba29.className = patio === '29' ? 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition' : 'px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition';
-                aba96.className = patio === '96' ? 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow cursor-pointer transition' : 'px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 cursor-pointer transition';
-            }
-            renderizar();
+        // CONFIGURAÇÃO FIREBASE CLOUD FIRESTORE (`fabricio-usina`)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgygb224GsADrAUMHpf_0ORD3VpImn3A",
+            authDomain: "fabricio-usina.firebaseapp.com",
+            projectId: "fabricio-usina",
+            storageBucket: "fabricio-usina.appspot.com",
+            messagingSenderId: "70323440326",
+            appId: "1:70323440326:web:5c0968e872a3dd01f25c7",
+            measurementId: "G-G5B1SHWZST"
         };
 
-        // --- MÓDULO PÁTIOS ---
-        window.fecharModal = function() { document.getElementById('modal').style.display = 'none'; }
-        window.abrirModalNovo = function() {
-            document.getElementById('modal').style.display = 'flex';
-            fotosTemporarias = [];
-            document.getElementById('modalTitulo').innerText = "Criar Relatório de Inspeção";
-            document.getElementById('iIdEditando').value = '';
-            document.getElementById('iDataInsp').value = new Date().toLocaleDateString('pt-BR');
-            document.getElementById('iPatio').value = patioFiltroAtivo ? patioFiltroAtivo : '';
-            document.getElementById('iParticipantes').value = 'Fabrício Francioli Souza - UI TEC - Aciaria\nRenato Gonçalves - Qualidade Controle Integrado';
-            document.getElementById('iObs').value = '';
-            atualizarPreviewModal();
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
-        window.abrirModalEditar = function(id) {
-            const itemEdit = mapaDados[id];
-            if (!itemEdit) return;
-            document.getElementById('modal').style.display = 'flex';
-            fotosTemporarias = itemEdit.fotos ? [...itemEdit.fotos] : [];
-            document.getElementById('modalTitulo').innerText = "Editar Relatório";
-            document.getElementById('iIdEditando').value = itemEdit.id;
-            document.getElementById('iDataInsp').value = itemEdit.dataInsp || '';
-            document.getElementById('iPatio').value = itemEdit.patio || '';
-            document.getElementById('iParticipantes').value = itemEdit.participantes || '';
-            document.getElementById('iObs').value = itemEdit.obs || '';
-            atualizarPreviewModal();
-        }
+        const db = firebase.firestore();
+        const COLECAO_FIRESTORE = "recusas_usiminas";
 
-        window.iniciarFilaFotos = function(files) {
-            if (fotosTemporarias.length + files.length > 4) {
-                alert("Máximo de 4 fotos.");
-                return;
-            }
-            tipoEdicaoFotoAtual = 'patio';
-            filaFotosPendentes = Array.from(files);
-            processarProximaFotoFila();
-            document.getElementById('iCamInput').value = '';
-            document.getElementById('iGaleriaInput').value = '';
-        }
+        Chart.register(ChartDataLabels);
 
-        // --- MÓDULO MATERIAIS ---
-        window.fecharModalMaterial = function() { document.getElementById('modalMaterial').style.display = 'none'; }
-        window.abrirModalNovoMaterial = function() {
-            document.getElementById('modalMaterial').style.display = 'flex';
-            document.getElementById('modalMaterialTitulo').innerText = "Novo Acompanhamento de Material";
-            document.getElementById('mIdEditando').value = '';
-            document.getElementById('mIdMaterial').value = '';
-            document.getElementById('mEspessura').value = '';
-            document.getElementById('mLargura').value = '';
-            document.getElementById('mQualidade').value = '';
-            document.getElementById('mDefeito').value = '';
-            document.getElementById('mLinha').value = '';
-            document.getElementById('mInspetor').value = 'Fabrício Francioli Souza';
-            document.getElementById('mDescricaoFb').value = '';
-            document.getElementById('mAnaliseTecnica').value = '';
-            fotoMaterialTemp = '';
-            atualizarPreviewMaterial();
-        }
-
-        window.abrirModalEditarMaterial = function(id) {
-            const item = mapaDados[id];
-            if(!item) return;
-            document.getElementById('modalMaterial').style.display = 'flex';
-            document.getElementById('modalMaterialTitulo').innerText = "Editar Material";
-            document.getElementById('mIdEditando').value = item.id;
-            document.getElementById('mIdMaterial').value = item.idMaterial || '';
-            document.getElementById('mEspessura').value = item.espessura || '';
-            document.getElementById('mLargura').value = item.largura || '';
-            document.getElementById('mQualidade').value = item.qualidade || '';
-            document.getElementById('mDefeito').value = item.defeito || '';
-            document.getElementById('mLinha').value = item.linha || '';
-            document.getElementById('mInspetor').value = item.inspetor || '';
-            document.getElementById('mDescricaoFb').value = item.descricaoFb || '';
-            document.getElementById('mAnaliseTecnica').value = item.analiseTecnica || '';
-            fotoMaterialTemp = item.foto || '';
-            atualizarPreviewMaterial();
-        }
-
-        window.iniciarFotoMaterial = function(file) {
-            if (!file) return;
-            tipoEdicaoFotoAtual = 'material';
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvasTemp = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > 1000) { h = Math.round((h * 1000) / w); w = 1000; }
-                    canvasTemp.width = w; canvasTemp.height = h;
-                    canvasTemp.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const imgComp = new Image();
-                    imgComp.onload = function() { abrirEditorFoto(imgComp); };
-                    imgComp.src = canvasTemp.toDataURL('image/jpeg', 0.85);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-            document.getElementById('mCamInput').value = '';
-            document.getElementById('mGaleriaInput').value = '';
-        }
-
-        function atualizarPreviewMaterial() {
-            const container = document.getElementById('previewMaterialContainer');
-            if (fotoMaterialTemp) {
-                container.innerHTML = `<div class="relative w-16 h-16 border rounded overflow-hidden shadow"><img src="${fotoMaterialTemp}" class="w-full h-full object-cover"></div>`;
-            } else {
-                container.innerHTML = `<span class="text-[11px] text-slate-400">Nenhuma imagem anexada</span>`;
-            }
-        }
-
-        function processarProximaFotoFila() {
-            if (filaFotosPendentes.length === 0) return;
-            const file = filaFotosPendentes.shift();
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvasTemp = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > 1000) { h = Math.round((h * 1000) / w); w = 1000; }
-                    canvasTemp.width = w; canvasTemp.height = h;
-                    canvasTemp.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const imgComp = new Image();
-                    imgComp.onload = function() { abrirEditorFoto(imgComp); };
-                    imgComp.src = canvasTemp.toDataURL('image/jpeg', 0.85);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function abrirEditorFoto(imgObj) {
-            imagemAtualObj = imgObj;
-            document.getElementById('modalEditor').style.display = 'flex';
-            const maxWidth = window.innerWidth > 768 ? 700 : window.innerWidth - 60;
-            let w = imgObj.width, h = imgObj.height;
-            if (w > maxWidth) { h = (maxWidth * h) / w; w = maxWidth; }
-            canvas.width = w; canvas.height = h;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(imgObj, 0, 0, w, h);
-        }
-
-        function configurarEventosMouseToque() {
-            function getPos(e) {
-                const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top };
-            }
-            canvas.addEventListener('mousedown', (e) => { desenhando = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); });
-            canvas.addEventListener('mousemove', (e) => {
-                if (!desenhando) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y);
-                ctx.strokeStyle = corAtual; ctx.lineWidth = parseInt(document.getElementById('inputEspessura').value);
-                ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
-            });
-            window.addEventListener('mouseup', () => { desenhando = false; });
-            canvas.addEventListener('touchstart', (e) => { desenhando = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); e.preventDefault(); });
-            canvas.addEventListener('touchmove', (e) => {
-                if (!desenhando) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y);
-                ctx.strokeStyle = corAtual; ctx.lineWidth = parseInt(document.getElementById('inputEspessura').value);
-                ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); e.preventDefault();
-            });
-            window.addEventListener('touchend', () => { desenhando = false; });
-        }
-
-        window.mudarCor = function(cor) { corAtual = cor; }
-        window.limparCanvas = function() { if (!imagemAtualObj) return; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(imagemAtualObj, 0, 0, canvas.width, canvas.height); }
-        window.cancelarEdicaoFoto = function() {
-            document.getElementById('modalEditor').style.display = 'none';
-            if (tipoEdicaoFotoAtual === 'patio' && filaFotosPendentes.length > 0) processarProximaFotoFila();
-        }
-        window.salvarFotoEditada = function() {
-            const dataUrlFinal = canvas.toDataURL('image/jpeg', 0.80);
-            if (tipoEdicaoFotoAtual === 'patio') {
-                fotosTemporarias.push(dataUrlFinal);
-                atualizarPreviewModal();
-                document.getElementById('modalEditor').style.display = 'none';
-                if (filaFotosPendentes.length > 0) processarProximaFotoFila();
-            } else {
-                fotoMaterialTemp = dataUrlFinal;
-                atualizarPreviewMaterial();
-                document.getElementById('modalEditor').style.display = 'none';
-            }
-        }
-
-        function atualizarPreviewModal() {
-            const galeria = document.getElementById('galeriaPreviewModal');
-            galeria.innerHTML = '';
-            document.getElementById('imgStatus').innerText = `${fotosTemporarias.length} de 4 fotos`;
-            fotosTemporarias.forEach((src, idx) => {
-                galeria.innerHTML += `<div class="relative w-14 h-14 border rounded overflow-hidden group shadow-sm"><img src="${src}" class="w-full h-full object-cover"><button type="button" onclick="removerFoto(${idx})" class="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs"><i class="fa-solid fa-trash"></i></button></div>`;
-            });
-        }
-        window.removerFoto = function(idx) { fotosTemporarias.splice(idx, 1); atualizarPreviewModal(); }
-
-        window.salvar = function() {
-            const patioVal = document.getElementById('iPatio').value;
-            if(!patioVal) { alert("Informe o pátio."); return; }
-            const registro = {
-                tipoRelatorio: "patio_oficial",
-                dataInsp: document.getElementById('iDataInsp').value || new Date().toLocaleDateString('pt-BR'),
-                patio: patioVal,
-                participantes: document.getElementById('iParticipantes').value,
-                obs: document.getElementById('iObs').value,
-                fotos: [...fotosTemporarias],
-                criadoEm: new Date().toLocaleString()
-            };
-            window.salvarFirebase(registro, document.getElementById('iIdEditando').value);
-        }
-
-        window.salvarMaterial = function() {
-            const idMat = document.getElementById('mIdMaterial').value;
-            if(!idMat) { alert("Informe o ID do Material."); return; }
-            const registro = {
-                tipoRelatorio: "acompanhamento_material",
-                idMaterial: idMat,
-                espessura: document.getElementById('mEspessura').value,
-                largura: document.getElementById('mLargura').value,
-                qualidade: document.getElementById('mQualidade').value,
-                defeito: document.getElementById('mDefeito').value,
-                linha: document.getElementById('mLinha').value,
-                inspetor: document.getElementById('mInspetor').value,
-                descricaoFb: document.getElementById('mDescricaoFb').value,
-                analiseTecnica: document.getElementById('mAnaliseTecnica').value,
-                foto: fotoMaterialTemp,
-                criadoEm: new Date().toLocaleString()
-            };
-            window.salvarFirebase(registro, document.getElementById('mIdEditando').value);
-        }
-
-        window.renderizar = function() {
-            const corpo = document.getElementById('tabelaCorpo');
-            const busca = document.getElementById('filtroBusca').value.toLowerCase();
-            corpo.innerHTML = '';
-
-            let filtrados = listaDados.filter(i => {
-                if (i.tipoRelatorio && i.tipoRelatorio !== "patio_oficial") return false;
-                const patioStr = (i.patio || "").toLowerCase();
-                if (patioFiltroAtivo && !patioStr.includes(patioFiltroAtivo)) return false;
-                return patioStr.includes(busca) || (i.participantes && i.participantes.toLowerCase().includes(busca)) || (i.obs && i.obs.toLowerCase().includes(busca));
-            });
-
-            if (filtrados.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Nenhum registro encontrado.</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            filtrados.forEach((item) => {
-                let fotosHtml = item.fotos && item.fotos.length > 0 ? item.fotos.map(f => `<img src="${f}" class="w-10 h-10 object-cover rounded cursor-pointer border" onclick="abrirZoom('${f}')">`).join('') : '<span class="text-slate-400">Sem foto</span>';
-                html += `
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="p-4 font-mono text-slate-500">${item.dataInsp || '-'}</td>
-                        <td class="p-4 font-black text-emerald-700">${item.patio || '-'}</td>
-                        <td class="p-4 text-slate-600 whitespace-pre-line text-[11px]">${item.participantes || '-'}</td>
-                        <td class="p-4 text-slate-700 font-semibold">${item.obs || '-'}</td>
-                        <td class="p-4 text-center"><div class="flex gap-1 justify-center flex-wrap">${fotosHtml}</div></td>
-                        <td class="p-4 text-center space-x-1">
-                            <button onclick="abrirModalEditar('${item.id}')" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deletarFirebase('${item.id}')" class="text-rose-500 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>`;
-            });
-            corpo.innerHTML = html;
-        }
-
-        window.renderizarMateriais = function() {
-            const corpo = document.getElementById('tabelaCorpoMaterial');
-            const busca = document.getElementById('filtroBuscaMaterial').value.toLowerCase();
-            corpo.innerHTML = '';
-
-            let filtrados = listaDados.filter(i => {
-                if (i.tipoRelatorio !== "acompanhamento_material") return false;
-                return (i.idMaterial || '').toLowerCase().includes(busca) || (i.linha || '').toLowerCase().includes(busca) || (i.inspetor || '').toLowerCase().includes(busca) || (i.qualidade || '').toLowerCase().includes(busca);
-            });
-
-            if (filtrados.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">Nenhum material cadastrado.</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            filtrados.forEach((item) => {
-                let fotoHtml = item.foto ? `<img src="${item.foto}" class="w-10 h-10 object-cover rounded cursor-pointer border" onclick="abrirZoom('${item.foto}')">` : '<span class="text-slate-400">Sem foto</span>';
-                let descFbFmt = item.descricaoFb ? item.descricaoFb.replace(/\n/g, '<br>') : '-';
-                let analiseFmt = item.analiseTecnica ? item.analiseTecnica.replace(/\n/g, '<br>') : '-';
-                html += `
-                    <tr class="hover:bg-slate-50/80 transition align-top">
-                        <td class="p-3 font-mono font-black text-emerald-700">${item.idMaterial || '-'}</td>
-                        <td class="p-3">${item.espessura || '-'} / ${item.largura || '-'}</td>
-                        <td class="p-3 font-bold">${item.qualidade || '-'}</td>
-                        <td class="p-3"><span class="text-rose-600 font-bold">${item.defeito || '-'}</span><br><span class="text-[10px] text-slate-500">Linha: ${item.linha || '-'}</span></td>
-                        <td class="p-3">${item.inspetor || '-'}<br><span class="text-[10px] text-slate-500 font-semibold">FB:</span><div class="text-[11px] text-slate-600 max-w-xs whitespace-pre-wrap">${descFbFmt}</div></td>
-                        <td class="p-3 text-[11px] text-slate-600 max-w-xs whitespace-pre-wrap">${analiseFmt}</td>
-                        <td class="p-3 text-center">${fotoHtml}</td>
-                        <td class="p-3 text-center space-x-1">
-                            <button onclick="abrirModalEditarMaterial('${item.id}')" class="bg-amber-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deletarFirebase('${item.id}')" class="text-rose-500 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>`;
-            });
-            corpo.innerHTML = html;
-        }
-
-        window.gerarPdfGeral = async function() {
-            alert("Gerando PDF do Relatório de Pátios...");
-        }
-
-        window.gerarPdfMaterial = async function() {
-            const materiais = listaDados.filter(i => i.tipoRelatorio === "acompanhamento_material");
-            if (materiais.length === 0) { alert("Sem materiais para gerar PDF."); return; }
-
-            let blocoHtml = '';
-            materiais.forEach((item) => {
-                let fotoHtml = item.foto ? `<img src="${item.foto}" style="width: 250px; height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" />` : '<span style="font-size: 11px; color: #94a3b8;">Sem imagem</span>';
-                let descFbFmt = item.descricaoFb ? item.descricaoFb.replace(/\n/g, '<br>') : '-';
-                let analiseFmt = item.analiseTecnica ? item.analiseTecnica.replace(/\n/g, '<br>') : '-';
-                
-                blocoHtml += `
-                    <div style="margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; page-break-inside: avoid;">
-                        <div style="background: #0f172a; color: white; padding: 6px 10px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-radius: 4px; margin-bottom: 8px;">
-                            ID Material: ${item.idMaterial} • Linha: ${item.linha || '-'}
-                        </div>
-                        <table style="width: 100%; font-size: 11px; margin-bottom: 8px; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 4px;"><strong>Espessura:</strong> ${item.espessura || '-'} mm</td>
-                                <td style="padding: 4px;"><strong>Largura:</strong> ${item.largura || '-'} mm</td>
-                                <td style="padding: 4px;"><strong>Qualidade:</strong> ${item.qualidade || '-'}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 4px;"><strong>Defeito:</strong> <span style="color: #dc2626; font-weight: bold;">${item.defeito || '-'}</span></td>
-                                <td style="padding: 4px;" colspan="2"><strong>Inspetor:</strong> ${item.inspetor || '-'}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 6px 4px; background: #f8fafc;" colspan="3"><strong>Descrição FB:</strong><br><div style="margin-top: 4px; line-height: 1.4; color: #334155;">${descFbFmt}</div></td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 6px 4px;" colspan="3"><strong>Análise Técnica:</strong><br><div style="margin-top: 4px; line-height: 1.4; color: #334155;">${analiseFmt}</div></td>
-                            </tr>
-                        </table>
-                        <div style="text-align: center; margin-top: 10px;">${fotoHtml}</div>
-                    </div>`;
-            });
-
-            const container = document.getElementById('materialPdfExport');
-            container.style.display = 'block';
-            container.style.width = '700px';
-            container.style.background = 'white';
-            container.style.padding = '20px';
-            container.innerHTML = `
-                <div style="font-family: 'Inter', sans-serif; color: #1e293b;">
-                    <div style="border-bottom: 3px solid #0f172a; padding-bottom: 10px; margin-bottom: 15px;">
-                        <span style="background: #0f172a; color: white; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 3px;">Usiminas</span>
-                        <h2 style="color: #0f172a; margin: 4px 0 2px 0; font-size: 16px; font-weight: 900; text-transform: uppercase;">Relatório de Acompanhamento de Material</h2>
-                        <p style="font-size: 11px; color: #475569; margin: 0;">Emitido em: ${new Date().toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    <div>${blocoHtml}</div>
-                </div>`;
-
-            try {
-                const canvasPdf = await html2canvas(container, { scale: 1.5, useCORS: true });
-                const imgData = canvasPdf.toDataURL('image/jpeg', 0.85);
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 210;
-                const pageHeight = 295;
-                const imgHeight = (canvasPdf.height * imgWidth) / canvasPdf.width;
-                let heightLeft = imgHeight;
-                let position = 0;
-
-                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
+        function revelarBotaoCopiar() {
+            let senha = prompt("Digite a senha de administrador:");
+            if (senha === "123456") {
+                let btn = document.getElementById('btnCopiarSecreto');
+                if (btn.classList.contains('hidden')) {
+                    btn.classList.remove('hidden');
+                    btn.classList.add('flex');
+                    alert("🔓 Botão de Copiar Código Base revelado nesta máquina!");
+                } else {
+                    btn.classList.remove('flex');
+                    btn.classList.add('hidden');
+                    alert("🔒 Botão de Copiar Código Base ocultado novamente.");
                 }
-                pdf.save(`Relatorio_Acompanhamento_Material.pdf`);
-            } catch (err) {
-                console.error("Erro PDF Materiais:", err);
-                alert("Erro ao gerar PDF.");
+            } else if (senha !== null) {
+                alert("❌ Senha incorreta.");
             }
-            container.style.display = 'none';
         }
 
-        window.abrirZoom = function(src) {
-            const img = document.getElementById('imgZoomAmpliada');
-            img.src = src;
-            img.classList.remove('zoom-ativo');
-            document.getElementById('modalZoom').style.display = 'flex';
+        // Base de fallback local com as 13 ocorrências oficiais
+        let dadosPadraoIniciais = [
+            {
+                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 472727, "placa": 271, "volume": "1395470", "qualidade": "FG52806FEP05", "espessura": 0.70, "largura": 1450.0, "peso": 2.98, "local_queda": "REB3", "data_evento": "2026-09-09 16:10", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "24", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["Nenhuma anormalidade operacional registrada"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "30558320", "id_cgl": "30558320"
+            },
+            {
+                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 473104, "placa": 221, "volume": "1671689", "qualidade": "GMW2MSTSCR4", "espessura": 0.65, "largura": 1560.0, "peso": 4.90, "local_queda": "REB3", "data_evento": "2026-09-14 09:57", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "24", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["Nenhuma anormalidade operacional registrada"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "30786377", "id_cgl": "30794840"
+            },
+            {
+                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 474312, "placa": 251, "volume": "1794604", "qualidade": "NBRZAR230", "espessura": 1.11, "largura": 1200.0, "peso": 4.37, "local_queda": "REB3", "data_evento": "2026-09-03 16:33", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "24", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["Nenhuma anormalidade operacional registrada"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "31615802", "id_cgl": "31615802"
+            },
+            {
+                "defeito": "1ES", "motivo": "ESFOLIAMENTO (1ES)", "corrida": 474861, "placa": 2201, "volume": "1918330", "qualidade": "NBR7008ZEE4", "espessura": 0.90, "largura": 1700.0, "peso": 12.64, "local_queda": "REB7", "data_evento": "2026-09-03 01:39", "forno": "5", "veio": "2", "norma": "27J3", "cod_fabricacao": "24", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "31986914", "id_cgl": "31986914"
+            },
+            {
+                "defeito": "1GFTQ", "motivo": "GOTA FRIA TRINCA DE QUINA (1GFTQ)", "corrida": 474336, "placa": 2401, "volume": "1923455", "qualidade": "MSCR06", "espessura": 0.65, "largura": 1640.0, "peso": 1.95, "local_queda": "REB7", "data_evento": "2026-09-04 01:01", "forno": "5", "veio": "3", "norma": "30", "cod_fabricacao": "24", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["Nenhuma anormalidade operacional registrada"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "32011659", "id_cgl": "32011659"
+            },
+            {
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 573593, "placa": 2701, "volume": "1926943", "qualidade": "NBR6658GF50", "espessura": 0.50, "largura": 1290.0, "peso": 17.16, "local_queda": "REB3", "data_evento": "2026-09-04 16:41", "forno": "4", "veio": "4", "norma": "10S2", "cod_fabricacao": "AA", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["PLACÃO DE BASE (INÍCIO) DA CORRIDA (POR VEIO)", "PLACA DE EMENDA DE CORRIDA", "PLACAS COM AJUSTE DE MOLDE (AM)", "PLACÃO COM VARIAÇÃO DE LARGURA"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "32037651", "id_cgl": "X"
+            },
+            {
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577059, "placa": 2901, "volume": "1929970", "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 9.67, "local_queda": "REB7", "data_evento": "2026-09-05 07:54", "forno": "6", "veio": "2", "norma": "87J2", "cod_fabricacao": "AA", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "32050060", "id_cgl": "32050060"
+            },
+            {
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577059, "placa": 2901, "volume": "1930110", "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 13.06, "local_queda": "REB7", "data_evento": "2026-09-05 07:55", "forno": "6", "veio": "2", "norma": "87J2", "cod_fabricacao": "AA", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "32050060", "id_cgl": "32050060"
+            },
+            {
+                "defeito": "1GF", "motivo": "GOTA FRIA (1GF)", "corrida": 272118, "placa": 2601, "volume": "1957970", "qualidade": "JSC590R", "espessura": 1.80, "largura": 1100.0, "peso": 2.42, "local_queda": "REB6", "data_evento": "2026-09-10 08:56", "forno": "3", "veio": "7", "norma": "10S2", "cod_fabricacao": "AA", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["PLACÃO DE TOPO (FIM) DA CORRIDA (POR VEIO)", "PLACA DE FINAL DE DISTRIBUIDOR (FD)"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "31992392", "id_cgl": "X"
+            },
+            {
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577757, "placa": 2201, "volume": "1980923", "qualidade": "LAH420Y480T", "espessura": 2.50, "largura": 1200.0, "peso": 14.07, "local_queda": "DEC3", "data_evento": "2026-09-14 15:08", "forno": "5", "veio": "4", "norma": "M1 3", "cod_fabricacao": "AA", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["PLACA DE EMENDA DE CORRIDA"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "32204353", "id_cgl": "32204353"
+            },
+            {
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577602, "placa": 2201, "volume": "1982049", "qualidade": "SAE1010", "espessura": 0.70, "largura": 1250.0, "peso": 2.70, "local_queda": "REB3", "data_evento": "2026-09-14 20:25", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "AA", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["Nenhuma anormalidade operacional registrada"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "32204629", "id_cgl": "32204629"
+            },
+            {
+                "defeito": "1BL", "motivo": "BOLSA (1BL)", "corrida": 474651, "placa": 2601, "volume": "32186656", "qualidade": "IFC280Y380T", "espessura": 0.70, "largura": 1420.0, "peso": 11.66, "local_queda": "PLTCM", "data_evento": "2026-09-10 17:01", "forno": "4", "veio": "4", "norma": "10S2", "cod_fabricacao": "CF-3001", "peca_seguranca": "Não",
+                "tempo_vacuo": "0:16:20", "rota_corrida": "LD3 -> FP1 -> RHD -> ML2",
+                "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "32158356", "id_cgl": "32158356"
+            },
+            {
+                "defeito": "1BH", "motivo": "BOLHA (1BH)", "corrida": 576167, "placa": 3001, "volume": "32247250", "qualidade": "SAE1010", "espessura": 1.00, "largura": 1250.0, "peso": 3.10, "local_queda": "REB3", "data_evento": "2026-09-14 18:04", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "24", "peca_seguranca": "'-",
+                "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
+                "anormalidades": ["PLACAS COM BATIDA DE TAMPÃO", "PLACAS LINGOTADAS SEM USO DE SCAN"],
+                "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
+                "id_bf": "31199076", "id_cgl": "31199076"
+            }
+        ];
+
+        // CARREGAR DADOS DO FIREBASE FIRESTORE
+        function carregarDadosDoFirebase() {
+            db.collection(COLECAO_FIRESTORE).get().then((querySnapshot) => {
+                if (!querySnapshot.empty) {
+                    let registrosNuvem = [];
+                    querySnapshot.forEach((doc) => {
+                        registrosNuvem.push(doc.data());
+                    });
+                    dadosPadraoIniciais = registrosNuvem;
+                    popularSelect();
+                    document.getElementById('badgeContagem').innerText = `${dadosPadraoIniciais.length} recusas sincronizadas do Firebase`;
+                } else {
+                    sincronizarDadosComFirebase();
+                    popularSelect();
+                }
+            }).catch((error) => {
+                console.error("Erro ao carregar do Firebase:", error);
+                popularSelect();
+            });
         }
-        window.alternarZoom = function(event) { event.stopPropagation(); document.getElementById('imgZoomAmpliada').classList.toggle('zoom-ativo'); }
-        window.fecharZoom = function(event) { if (event.target.id === 'modalZoom' || event.target.closest('button')) document.getElementById('modalZoom').style.display = 'none'; }
+
+        // SALVAR NA NUVEM DO FIREBASE
+        function sincronizarDadosComFirebase() {
+            const batch = db.batch();
+            dadosPadraoIniciais.forEach((item) => {
+                let docRef = db.collection(COLECAO_FIRESTORE).doc(`${item.corrida}_${item.placa}`);
+                batch.set(docRef, item);
+            });
+            batch.commit().then(() => {
+                console.log("Dados salvos no Firebase com sucesso!");
+            }).catch((error) => {
+                console.error("Erro ao salvar no Firebase:", error);
+            });
+        }
+
+        // PROCESSAR MÚLTIPLAS PLANILHAS EM CONJUNTO
+        function processarMultiplasPlanilhas(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            let mapQuedas = [];
+            let mapAnormalidades = {};
+            let mapEscarfagem = {};
+            let processados = 0;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const sheetName = workbook.SheetNames[0];
+                        const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                        const fileName = file.name.toUpperCase();
+
+                        if (fileName.includes('CONSULTA') || fileName.includes('QUEDA') || fileName.includes('LAMINAÇÃO')) {
+                            mapQuedas = json;
+                        } else if (fileName.includes('ANORMALIDADE')) {
+                            json.forEach(r => {
+                                let corr = String(r.NUM_CORR_ACI || r.CORRIDA || '').trim();
+                                let plc = String(r.NUM_PLC || r.PLACA || '').trim();
+                                let key = `${corr}_${plc}`;
+                                if (!mapAnormalidades[key]) mapAnormalidades[key] = [];
+                                if (r.DESCR_ANORM_OPERAC_PLC) mapAnormalidades[key].push(r.DESCR_ANORM_OPERAC_PLC);
+                            });
+                        } else if (fileName.includes('ESCARF') || fileName.includes('ESCARFER')) {
+                            json.forEach(r => {
+                                let corr = String(r.NUM_CORR_ACI || '').trim();
+                                let plc = String(r.NUM_PLC || '').trim();
+                                let key = `${corr}_${plc}`;
+                                mapEscarfagem[key] = r;
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Erro ao ler arquivo:", file.name, err);
+                    }
+
+                    processados++;
+                    if (processados === files.length) {
+                        if (mapQuedas.length > 0) {
+                            dadosPadraoIniciais = mapQuedas.map(row => {
+                                let corr = Number(row['Número Corrida'] || row['NUM_CORR_ACI'] || 474651);
+                                let plc = Number(row['Número Placa'] || row['Número Placa'] || 2601);
+                                let pesoKg = Number(row['Peso'] || 10000);
+                                let pesoTon = pesoKg > 100 ? pesoKg / 1000 : (isNaN(pesoKg) ? 10.0 : pesoKg);
+                                let idtBf = String(row['BF_PLTCM'] || row['N° Volume'] || '32186656');
+                                let idtCgl = String(row['BF_CGL'] || row['N° Volume'] || '1833892');
+                                if (idtCgl === 'X' || !idtCgl) idtCgl = idtBf;
+
+                                let keyAnom = `${corr}_${plc}`;
+                                let anoms = mapAnormalidades[keyAnom] || ["PLACA DE EMENDA DE CORRIDA"];
+
+                                return {
+                                    defeito: String(row['Cód# Defeito Legado'] || row['DEFEITO'] || '1BL').trim(),
+                                    motivo: String(row['Motivo'] || 'Inspeção de Qualidade').trim(),
+                                    corrida: corr,
+                                    placa: plc,
+                                    volume: String(row['N° Volume'] || '32186656').trim(),
+                                    qualidade: String(row['Qualidade'] || 'SAE1010').trim(),
+                                    espessura: Number(row['Espessura'] || 0.70),
+                                    largura: Number(row['Largura'] || 1250.0),
+                                    peso: pesoTon,
+                                    local_queda: String(row['Local da Queda'] || 'PLTCM').trim(),
+                                    data_evento: String(row['Data Real Evento'] || '2026-09-15 12:00').trim(),
+                                    forno: String(row['Forno'] || '4'),
+                                    veio: String(row['Veio'] || '2'),
+                                    norma: String(row['Norma'] || '10S2'),
+                                    cod_fabricacao: String(row['Cód# Fabric# Previsto'] || 'CF-1000').trim(),
+                                    peca_seguranca: String(row['Peça Segurança'] || 'Não').trim(),
+                                    tempo_vacuo: "0:20:00",
+                                    rota_corrida: "LD -> RH -> ML",
+                                    anormalidades: anoms,
+                                    escarfagem_info: { escarfada: 'Não', vel_face_a: null, vel_face_b: null, def_face_a: null, def_face_b: null },
+                                    id_bf: idtBf,
+                                    id_cgl: idtCgl
+                                };
+                            });
+
+                            sincronizarDadosComFirebase();
+                            popularSelect();
+                            alert(`✅ Planilhas processadas e sincronizadas no Firebase com sucesso! ${dadosPadraoIniciais.length} registros integrados.`);
+                        } else {
+                            alert("⚠️ A planilha principal de Consulta / Quedas não foi identificada. Certifique-se de incluí-la na seleção.");
+                        }
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function copiarCodigoBase() {
+            if (!dadosPadraoIniciais || dadosPadraoIniciais.length === 0) { alert("O painel está vazio!"); return; }
+            let codigo = "let dadosPadraoIniciais = [\n";
+            dadosPadraoIniciais.forEach((item, i) => { codigo += "    " + JSON.stringify(item) + (i < dadosPadraoIniciais.length - 1 ? ",\n" : "\n"); });
+            codigo += "];";
+
+            navigator.clipboard.writeText(codigo).then(() => {
+                alert("✅ CÓDIGO DA BASE ATUALIZADA COPIADO COM SUCESSO!\n\nCole no seu Bloco de Notas / GitHub para atualizar a página para os demais usuários.");
+            }).catch(() => {
+                alert("Erro ao copiar.");
+            });
+        }
+
+        function parseDataSegura(dataStr) {
+            if (!dataStr) return 0;
+            if (dataStr.includes('/')) {
+                const partes = dataStr.split(' ');
+                const dataPartes = partes[0].split('/');
+                const horaPartes = (partes[1] || '00:00').split(':');
+                return new Date(dataPartes[2], dataPartes[1] - 1, dataPartes[0], horaPartes[0], horaPartes[1]).getTime();
+            }
+            return new Date(dataStr).getTime() || 0;
+        }
+
+        function ordenarDadosDecrescentes(obj) {
+            const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+            return {
+                labels: entries.map(e => e[0]),
+                data: entries.map(e => Number(e[1].toFixed(2)))
+            };
+        }
+
+        let chartDefeitoInstancia = null;
+        let chartFabricacaoInstancia = null;
+        let chartLinhaInstancia = null;
+
+        function renderizarGraficos() {
+            const defs = {};
+            dadosPadraoIniciais.forEach(d => {
+                const def = d.defeito || 'OUTROS';
+                defs[def] = (defs[def] || 0) + (d.peso || 0);
+            });
+            const sortedDef = ordenarDadosDecrescentes(defs);
+
+            const ctxDef = document.getElementById('chartDefeito').getContext('2d');
+            if (chartDefeitoInstancia) chartDefeitoInstancia.destroy();
+            chartDefeitoInstancia = new Chart(ctxDef, {
+                type: 'bar',
+                data: {
+                    labels: sortedDef.labels,
+                    datasets: [{
+                        label: 'Volume (t)',
+                        data: sortedDef.data,
+                        backgroundColor: '#10b981',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            formatter: function(value) { return value + ' t'; },
+                            font: { weight: 'bold', size: 10 },
+                            color: '#1e293b'
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+                        y: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+
+            const fabs = {};
+            dadosPadraoIniciais.forEach(d => {
+                const cf = d.cod_fabricacao || 'N/I';
+                fabs[cf] = (fabs[cf] || 0) + (d.peso || 0);
+            });
+            const sortedFabFull = ordenarDadosDecrescentes(fabs);
+            const sortedFab = {
+                labels: sortedFabFull.labels.slice(0, 8),
+                data: sortedFabFull.data.slice(0, 8)
+            };
+
+            const ctxFab = document.getElementById('chartFabricacao').getContext('2d');
+            if (chartFabricacaoInstancia) chartFabricacaoInstancia.destroy();
+            chartFabricacaoInstancia = new Chart(ctxFab, {
+                type: 'bar',
+                data: {
+                    labels: sortedFab.labels,
+                    datasets: [{
+                        label: 'Volume (t)',
+                        data: sortedFab.data,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) { return value + ' t'; },
+                            font: { weight: 'bold', size: 10 },
+                            color: '#1e293b'
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { font: { size: 10 } },
+                            suggestedMax: Math.max(...sortedFab.data) * 1.15
+                        },
+                        x: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+
+            const locais = {};
+            dadosPadraoIniciais.forEach(d => {
+                const loc = d.local_queda || 'REB';
+                locais[loc] = (locais[loc] || 0) + (d.peso || 0);
+            });
+            const sortedLoc = ordenarDadosDecrescentes(locais);
+
+            const ctxLoc = document.getElementById('chartLinha').getContext('2d');
+            if (chartLinhaInstancia) chartLinhaInstancia.destroy();
+            chartLinhaInstancia = new Chart(ctxLoc, {
+                type: 'bar',
+                data: {
+                    labels: sortedLoc.labels,
+                    datasets: [{
+                        label: 'Volume (t)',
+                        data: sortedLoc.data,
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) { return value + ' t'; },
+                            font: { weight: 'bold', size: 10 },
+                            color: '#1e293b'
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { font: { size: 10 } },
+                            suggestedMax: Math.max(...sortedLoc.data) * 1.18
+                        },
+                        x: { ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: false } }
+                    }
+                }
+            });
+        }
+
+        function popularSelect() {
+            try {
+                dadosPadraoIniciais.sort((a, b) => parseDataSegura(b.data_evento) - parseDataSegura(a.data_evento));
+
+                const select = document.getElementById('selectRegistro');
+                if (!select) return;
+                select.innerHTML = '';
+                dadosPadraoIniciais.forEach((item, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.text = `📅 ${item.data_evento} | [Defeito: ${item.defeito}] Corrida ${item.corrida} | Placa ${item.placa}`;
+                    select.appendChild(opt);
+                });
+                
+                const badge = document.getElementById('badgeContagem');
+                if (badge) badge.innerText = `${dadosPadraoIniciais.length} ocorrências carregadas`;
+                
+                renderizarGraficos();
+                mudarRegistro();
+            } catch (err) {
+                console.error("Erro em popularSelect:", err);
+            }
+        }
+
+        function renderListaOuVazio(container, lista, vazioTexto) {
+            if (!container) return;
+            container.innerHTML = '';
+            if (Array.isArray(lista) && lista.length) {
+                lista.forEach(a => {
+                    const line = document.createElement('div');
+                    line.className = "mb-1 text-[11px] font-bold text-rose-600";
+                    line.innerText = `• ${a}`;
+                    container.appendChild(line);
+                });
+            } else {
+                container.innerHTML = `<span class="text-slate-400 italic font-normal">${vazioTexto}</span>`;
+            }
+        }
+
+        function mudarRegistro() {
+            try {
+                const select = document.getElementById('selectRegistro');
+                if (!select) return;
+                const idx = select.value;
+                const r = dadosPadraoIniciais[idx];
+                if (!r) return;
+
+                document.getElementById('relatorioTexto').innerHTML =
+                    `Corrida ${r.corrida}, placa ${r.placa}: recusa por ${r.defeito} (${r.motivo}) detectada em "${r.local_queda}" em ${r.data_evento}. A placa tem ${r.anormalidades ? r.anormalidades.length : 0} anormalidade(s) operacional(is) registrada(s) na aciaria.`;
+
+                document.getElementById('viewDefeito').innerText = r.defeito || '-';
+                document.getElementById('viewPlacaCabeca').innerText = `Placa: ${r.placa || '-'}`;
+                document.getElementById('viewBadgeTipo').innerText = r.qualidade || '-';
+                document.getElementById('viewCorridaBox').innerText = r.corrida || '-';
+                document.getElementById('viewPlacaBox').innerText = r.placa || '-';
+                document.getElementById('viewVolume').innerText = r.volume || '-';
+                document.getElementById('viewForno').innerText = r.forno ? `Forno ${r.forno}` : 'Não inf.';
+                document.getElementById('viewVeio').innerText = r.veio ? `Veio ${r.veio}` : 'Não inf.';
+
+                renderListaOuVazio(document.getElementById('viewAnomalia'), r.anormalidades, 'Nenhuma anormalidade operacional registrada.');
+
+                const esc = r.escarfagem_info;
+                if (esc) {
+                    document.getElementById('viewEscSimNao').innerText = esc.escarfada || 'Não';
+                    document.getElementById('viewVelFace').innerText = esc.escarfada === 'Sim' ? 'A: 8.0 | B: 8.0' : 'Não escarfada / Sem vel.';
+                    document.getElementById('viewDefFaceA').innerText = esc.def_face_a ? esc.def_face_a : 'Nenhum';
+                    document.getElementById('viewDefFaceB').innerText = esc.def_face_b ? esc.def_face_b : 'Nenhum';
+                }
+
+                document.getElementById('viewQualidade').innerText = r.qualidade || '-';
+                document.getElementById('viewCodFabricacao').innerText = r.cod_fabricacao || 'CF-00';
+                document.getElementById('viewNorma').innerText = r.norma || '10S2';
+                document.getElementById('viewDimensoes').innerText = `${r.espessura ?? '-'} mm / ${r.largura ?? '-'} mm`;
+                document.getElementById('viewData').innerText = r.data_evento || '-';
+                document.getElementById('viewLocalQueda').innerText = r.local_queda || '-';
+                document.getElementById('viewPeso').innerText = (typeof r.peso === 'number' ? r.peso.toFixed(2) : (r.peso ?? '-'));
+                document.getElementById('viewTempoVacuo').innerText = r.tempo_vacuo ? r.tempo_vacuo : 'Não disponível nos dados';
+                
+                const rotaElem = document.getElementById('viewRotaCorrida');
+                if (rotaElem) {
+                    rotaElem.innerText = r.rota_corrida || 'Não informada';
+                }
+
+                // RASTREABILIDADE PLTCM (Anterior / Alvo / Posterior conectados diretamente aos registros vizinhos reais do array)
+                const tbodyPltcm = document.getElementById('tabelaPltcmCorpo');
+                if (tbodyPltcm) {
+                    tbodyPltcm.innerHTML = '';
+                    let itemAnterior = idx < dadosPadraoIniciais.length - 1 ? dadosPadraoIniciais[Number(idx) + 1] : r;
+                    let itemPosterior = idx > 0 ? dadosPadraoIniciais[Number(idx) - 1] : r;
+
+                    [
+                        { label: '-1 (Anterior)', item: itemAnterior, alvo: false },
+                        { label: 'ALVO (Recusado)', item: r, alvo: true },
+                        { label: '+1 (Posterior)', item: itemPosterior, alvo: false }
+                    ].forEach(l => {
+                        const tr = document.createElement('tr');
+                        tr.className = l.alvo ? "bg-rose-50/50" : "";
+                        tr.innerHTML = `
+                            <td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] uppercase ${l.alvo ? 'bg-rose-100 text-rose-800 font-bold border border-rose-300' : 'bg-slate-100 text-slate-700'}">${l.label}</span></td>
+                            <td class="p-3 font-mono ${l.alvo ? 'text-rose-700 font-bold' : 'text-emerald-700 font-bold'}">${l.item.id_bf || l.item.volume}</td>
+                            <td class="p-3 text-center font-mono text-slate-700">${l.item.corrida}</td>
+                            <td class="p-3 text-center font-mono text-slate-700">${l.item.placa}</td>
+                            <td class="p-3 font-bold text-slate-800">${l.item.qualidade}</td>
+                            <td class="p-3 text-center font-mono text-slate-700">${l.item.espessura}mm / ${l.item.largura}mm</td>
+                            <td class="p-3 text-center font-mono font-bold text-slate-800">${l.item.peso.toFixed(2)} t</td>
+                            <td class="p-3 text-center font-bold">${l.alvo ? (l.item.escarfagem_info.escarfada || 'Não') : 'Não'}</td>
+                            <td class="p-3 font-mono text-slate-700">${l.item.data_evento}</td>
+                        `;
+                        tbodyPltcm.appendChild(tr);
+                    });
+                }
+
+                // RASTREABILIDADE CGL (Anterior / Alvo / Posterior conectados diretamente aos registros vizinhos reais do array)
+                const tbodyCgl = document.getElementById('tabelaCglCorpo');
+                if (tbodyCgl) {
+                    tbodyCgl.innerHTML = '';
+                    let itemAnterior = idx < dadosPadraoIniciais.length - 1 ? dadosPadraoIniciais[Number(idx) + 1] : r;
+                    let itemPosterior = idx > 0 ? dadosPadraoIniciais[Number(idx) - 1] : r;
+
+                    [
+                        { label: '-1 (Anterior CGL)', item: itemAnterior, alvo: false },
+                        { label: 'ALVO (CGL)', item: r, alvo: true },
+                        { label: '+1 (Posterior CGL)', item: itemPosterior, alvo: false }
+                    ].forEach(l => {
+                        const tr = document.createElement('tr');
+                        tr.className = l.alvo ? "bg-rose-50/50" : "";
+                        tr.innerHTML = `
+                            <td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] uppercase ${l.alvo ? 'bg-rose-100 text-rose-800 font-bold border border-rose-300' : 'bg-slate-100 text-slate-700'}">${l.label}</span></td>
+                            <td class="p-3 font-mono ${l.alvo ? 'text-rose-700 font-bold' : 'text-emerald-700 font-bold'}">${l.item.id_cgl || l.item.volume}</td>
+                            <td class="p-3 text-center font-mono text-slate-700">${l.item.corrida}</td>
+                            <td class="p-3 text-center font-mono text-slate-700">${l.item.placa}</td>
+                            <td class="p-3 font-bold text-slate-800">${l.item.qualidade}</td>
+                            <td class="p-3 text-center font-mono text-slate-700">${l.item.espessura}mm / ${l.item.largura}mm</td>
+                            <td class="p-3 text-center font-mono font-bold text-slate-800">${l.item.peso.toFixed(2)} t</td>
+                            <td class="p-3 text-center font-bold">${l.alvo ? 'Não' : 'Sim'}</td>
+                            <td class="p-3 font-mono text-slate-700">${l.item.data_evento}</td>
+                        `;
+                        tbodyCgl.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                console.error("Erro em mudarRegistro:", err);
+            }
+        }
+
+        // Carregar do Firebase assim que a página abrir
+        window.onload = function() {
+            carregarDadosDoFirebase();
+        };
     </script>
 </body>
 </html>
