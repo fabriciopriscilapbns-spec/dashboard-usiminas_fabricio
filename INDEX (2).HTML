@@ -26,7 +26,7 @@
                 <span class="text-xs text-slate-500 font-semibold">Elaborado por Fabrício Francioli Souza</span>
             </div>
             <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight mt-1 text-slate-900">Investigação Executiva de Recusas</h1>
-            <p class="text-xs text-slate-400 mt-0.5 font-medium">Base Oficial Consolidada (18 Ocorrências Reais) — Atualizado em: <span id="lblAtualizado">15/09/2026</span></p>
+            <p class="text-xs text-slate-400 mt-0.5 font-medium">Base Oficial Consolidada (Agosto e Setembro de 2026) — Atualizado em: <span id="lblAtualizado">15/09/2026</span></p>
         </div>
         
         <!-- BOTÕES DE CONTROLE -->
@@ -38,7 +38,7 @@
                 <i class="fa-solid fa-print"></i> PDF / Imprimir
             </button>
             <label class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2 cursor-pointer">
-                <i class="fa-solid fa-file-excel"></i> Atualizar Planilha Excel
+                <i class="fa-solid fa-file-excel"></i> Atualizar Quedas / BQ
                 <input type="file" id="fileExcel" accept=".xlsx, .xls" class="hidden" onchange="processarExcel(event)">
             </label>
         </div>
@@ -46,32 +46,85 @@
 
     <main class="max-w-7xl mx-auto space-y-8">
 
-        <!-- CARD TÉCNICO COMPACTO: 1ESPF SEM ESCARFAGEM -->
-        <div class="bg-white border border-slate-200 p-5 md:p-6 rounded-3xl shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div class="space-y-2.5 w-full">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h3 class="font-black text-xs md:text-sm uppercase tracking-wide text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Análise Crítica: 1ESPF (Esfoliamento Pó Fluxante) Sem Escarfagem
-                    </h3>
-                    <span class="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">3 Bobinas • 33,43 t</span>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-[11px]">
-                        <span class="text-emerald-700 font-bold block mb-0.5">IDT Volume: 1930110</span>
-                        <span class="text-slate-600">Corrida: 577059 | Placa: 2901</span><br>
-                        <span class="text-slate-500 text-[10px]">Norma: 87J2 | Cód. Fab: MB (6,60 t)</span>
+        <!-- PAINEL DE FILTROS RÁPIDOS (BI Total) -->
+        <div class="card-exec p-5 md:p-6 rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50/40 to-white shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
+                        <i class="fa-solid fa-filter text-sm"></i>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-[11px]">
-                        <span class="text-emerald-700 font-bold block mb-0.5">IDT Volume: 1929970</span>
-                        <span class="text-slate-600">Corrida: 577059 | Placa: 2901</span><br>
-                        <span class="text-slate-500 text-[10px]">Norma: 87J2 | Cód. Fab: MB (9,67 t)</span>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-[11px]">
-                        <span class="text-emerald-700 font-bold block mb-0.5">IDT Volume: 1926943</span>
-                        <span class="text-slate-600">Corrida: 573593 | Placa: 2701</span><br>
-                        <span class="text-slate-500 text-[10px]">Norma: 10S2 | Cód. Fab: AA (17,16 t)</span>
+                    <div>
+                        <span class="text-[10px] font-black uppercase text-emerald-700 tracking-wider block">Painel de Filtragem Avançada (BI)</span>
+                        <h3 class="font-black text-slate-800 text-xs md:text-sm uppercase tracking-tight">Filtros Cruzados: Período, Defeito e Escarfagem</h3>
                     </div>
                 </div>
+                <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-sm" id="contadorFiltroBadge">Exibindo ocorrências</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <!-- Filtro de Mês -->
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-600 mb-1">Filtrar por Mês:</label>
+                    <select id="filtroMes" onchange="aplicarFiltrosAvancados()" class="p-2.5 text-xs border border-slate-200 rounded-xl w-full bg-white font-bold text-slate-700 cursor-pointer shadow-sm">
+                        <option value="TODOS">📅 Todos os Períodos</option>
+                        <option value="2026-08">Agosto / 2026</option>
+                        <option value="2026-09">Setembro / 2026</option>
+                    </select>
+                </div>
+
+                <!-- Filtro de Defeito -->
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-600 mb-1">Filtrar por Defeito:</label>
+                    <select id="filtroDefeito" onchange="aplicarFiltrosAvancados()" class="p-2.5 text-xs border border-slate-200 rounded-xl w-full bg-white font-bold text-slate-700 cursor-pointer shadow-sm">
+                        <option value="TODOS">⚙️ Todos os Defeitos</option>
+                        <option value="1ESPF">1ESPF (Esfoliamento Pó Fluxante)</option>
+                        <option value="1BH">1BH (Bolha)</option>
+                        <option value="1FP">1FP (Falta de Peso)</option>
+                        <option value="1BL">1BL (Bolsa)</option>
+                        <option value="1GF">1GF (Gota Fria)</option>
+                        <option value="1ES">1ES (Esfoliamento)</option>
+                        <option value="1GFTQ">1GFTQ (Gota Fria Trinca de Quina)</option>
+                    </select>
+                </div>
+
+                <!-- Filtro de Escarfagem -->
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-600 mb-1">Status de Escarfagem:</label>
+                    <select id="filtroEscarfagem" onchange="aplicarFiltrosAvancados()" class="p-2.5 text-xs border border-slate-200 rounded-xl w-full bg-white font-bold text-slate-700 cursor-pointer shadow-sm">
+                        <option value="TODOS">🔥 Todos os Status</option>
+                        <option value="NAO_ESCARFADA">Apenas SEM Escarfagem (Direto p/ Laminação)</option>
+                        <option value="ESCARFADA">Apenas COM Escarfagem Prévia</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD DE ANÁLISE CRÍTICA 1ESPF SEM ESCARFAGEM -->
+        <div class="bg-white border border-slate-200 p-5 md:p-6 rounded-3xl shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-black text-xs md:text-sm uppercase tracking-wide text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Análise Crítica: 1ESPF (Esfoliamento Pó Fluxante) Sem Escarfagem
+                </h3>
+                <span id="badgeAnaliseCritica" class="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">0 Bobinas • 0.00 t</span>
+            </div>
+            <div id="containerAnaliseCritica" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            </div>
+        </div>
+
+        <!-- SELETOR CONSOLIDADO DE OCORRÊNCIAS FILTRADAS -->
+        <div class="card-exec p-5 md:p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <i class="fa-solid fa-database text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-xs md:text-sm uppercase tracking-tight">Filtrar por Material / Bobina Recusada</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5" id="badgeContagem">Selecione para detalhar no Ishikawa.</p>
+                </div>
+            </div>
+            <div class="w-full md:w-auto">
+                <select id="selectRegistro" onchange="mudarRegistro()" onclick="if (this.showPicker) this.showPicker();" class="p-3.5 text-xs border-2 border-slate-200 rounded-2xl w-full md:w-[520px] bg-slate-50 font-bold text-slate-800 cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </select>
             </div>
         </div>
 
@@ -111,24 +164,6 @@
                 <div class="p-5 relative h-64 md:h-72 flex items-center justify-center">
                     <canvas id="chartLinha"></canvas>
                 </div>
-            </div>
-        </div>
-
-        <!-- FILTRO EXECUTIVO DE MATERIAIS / OCORRÊNCIAS (Destacado com Número do Material e Ícone) -->
-        <div class="card-exec p-5 md:p-6 rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50/40 to-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm">
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
-                    <i class="fa-solid fa-filter text-sm"></i>
-                </div>
-                <div>
-                    <span class="text-[10px] font-black uppercase text-emerald-700 tracking-wider block">Filtro de Seleção de Materiais</span>
-                    <h3 class="font-black text-slate-800 text-xs md:text-sm uppercase tracking-tight">Filtrar por Material / Bobina Recusada</h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5" id="badgeContagem">18 ocorrências oficiais carregadas.</p>
-                </div>
-            </div>
-            <div class="w-full md:w-auto">
-                <select id="selectRegistro" onchange="mudarRegistro()" onclick="if (this.showPicker) this.showPicker();" class="p-3.5 text-xs border-2 border-emerald-500/50 rounded-2xl w-full md:w-[520px] bg-white font-bold text-slate-800 cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                </select>
             </div>
         </div>
 
@@ -232,6 +267,46 @@
             </div>
         </div>
 
+        <!-- SEÇÃO BQ (Tiras a Quente - Cruzada com CONSULTA_TQ.xlsx) -->
+        <div class="card-exec p-6 rounded-3xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="bg-amber-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">BQ (Tiras a Quente)</span>
+                    <h3 class="font-black text-slate-800 text-sm md:text-base uppercase tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-amber-600"></i> Linha BQ - Laminação a Quente (Anterior / Alvo / Posterior)
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> Anexar CONSULTA_TQ.xlsx
+                        <input type="file" accept=".xlsx, .xls" class="hidden" onchange="processarTqExcel(event)">
+                    </label>
+                    <label class="bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> Anexar Obs. BQ/CGL
+                        <input type="file" accept=".xlsx, .xls" class="hidden" onchange="processarObsExcel(event)">
+                    </label>
+                </div>
+            </div>
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs border-collapse min-w-[850px]">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 uppercase font-bold text-[11px] border-b border-slate-200">
+                            <th class="p-3.5 text-center">Posição</th>
+                            <th class="p-3.5">N° da BQ (NUM_BOBINA_QUENTE)</th>
+                            <th class="p-3.5 text-center">Corrida</th>
+                            <th class="p-3.5">Qualidade</th>
+                            <th class="p-3.5 text-center">Defeito BQ</th>
+                            <th class="p-3.5 text-center">Tipo / Disposição</th>
+                            <th class="p-3.5">Observação de Inspeção</th>
+                            <th class="p-3.5">Data / Hora BQ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaBqCorpo" class="divide-y divide-slate-100 text-slate-700 bg-white">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- SEÇÃO PLTCM -->
         <div class="card-exec p-6 rounded-3xl space-y-4">
             <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
@@ -241,17 +316,16 @@
                 </h3>
             </div>
             <div class="overflow-x-auto border border-slate-200 rounded-2xl">
-                <table class="w-full text-left text-xs border-collapse min-w-[700px]">
+                <table class="w-full text-left text-xs border-collapse min-w-[850px]">
                     <thead>
                         <tr class="bg-slate-50 text-slate-600 uppercase font-bold text-[11px] border-b border-slate-200">
                             <th class="p-3.5 text-center">Posição</th>
                             <th class="p-3.5">N° Volume (IDT)</th>
                             <th class="p-3.5 text-center">Corrida</th>
-                            <th class="p-3.5 text-center">Placa</th>
                             <th class="p-3.5">Qualidade</th>
-                            <th class="p-3.5 text-center">Esp. / Larg.</th>
-                            <th class="p-3.5 text-center">Peso (t)</th>
-                            <th class="p-3.5 text-center">Escarfada?</th>
+                            <th class="p-3.5 text-center">Defeito Processo</th>
+                            <th class="p-3.5 text-center">Tipo / Disposição</th>
+                            <th class="p-3.5">Observação de Inspeção</th>
                             <th class="p-3.5">Data / Hora PLTCM</th>
                         </tr>
                     </thead>
@@ -270,17 +344,16 @@
                 </h3>
             </div>
             <div class="overflow-x-auto border border-slate-200 rounded-2xl">
-                <table class="w-full text-left text-xs border-collapse min-w-[700px]">
+                <table class="w-full text-left text-xs border-collapse min-w-[850px]">
                     <thead>
                         <tr class="bg-slate-50 text-slate-600 uppercase font-bold text-[11px] border-b border-slate-200">
                             <th class="p-3.5 text-center">Posição</th>
                             <th class="p-3.5">N° Volume (IDT)</th>
                             <th class="p-3.5 text-center">Corrida</th>
-                            <th class="p-3.5 text-center">Placa</th>
                             <th class="p-3.5">Qualidade</th>
-                            <th class="p-3.5 text-center">Esp. / Larg.</th>
-                            <th class="p-3.5 text-center">Peso (t)</th>
-                            <th class="p-3.5 text-center">Escarfada?</th>
+                            <th class="p-3.5 text-center">Defeito Processo</th>
+                            <th class="p-3.5 text-center">Tipo / Disposição</th>
+                            <th class="p-3.5">Observação de Inspeção</th>
                             <th class="p-3.5">Data / Hora CGL</th>
                         </tr>
                     </thead>
@@ -294,6 +367,9 @@
 
     <script>
         Chart.register(ChartDataLabels);
+
+        let dadosTQGlobal = [];
+        let dadosObsGlobal = [];
 
         function revelarBotaoCopiar() {
             let senha = prompt("Digite a senha de administrador:");
@@ -319,7 +395,7 @@
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD1 -> FP1 -> ML1",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Sim", "vel_face_a": 12.0, "vel_face_b": 12.0, "def_face_a": "Nenhum", "def_face_b": "Nenhum" },
-                "id_bf": "32204629", "id_cgl": "32204629",
+                "id_bf": "30998720", "id_cgl": "32204629",
                 "cgl_anterior": { "volume": "1982086", "corrida": 577813, "placa": 2801, "qualidade": "FEE210IF", "espessura": 0.65, "largura": 1310.0, "peso": 14.73, "data_producao": "2026-09-14 18:34:00" },
                 "cgl_alvo": { "volume": "1982049", "corrida": 577602, "placa": 2201, "qualidade": "RNESCR4", "espessura": 0.64, "largura": 1258.0, "peso": 2.70, "data_producao": "2026-09-14 18:34:00" },
                 "cgl_posterior": { "volume": "1981890", "corrida": 577210, "placa": 2401, "qualidade": "NBR7008ZC", "espessura": 0.90, "largura": 1200.0, "peso": 14.55, "data_producao": "2026-09-14 18:46:00" }
@@ -347,119 +423,188 @@
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "30786377", "id_cgl": "30794840", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "30786377", "id_cgl": "30794840",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
                 "defeito": "1BH", "motivo": "BOLHA (1BH)", "corrida": 272856, "placa": 2301, "volume": "888343565", "qualidade": "USIYM300", "espessura": 6.30, "largura": 2200.0, "peso": 0.70, "local_queda": "INSP CG", "data_evento": "2026-09-12 04:41", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "JY", "peca_seguranca": "'-",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "888343565", "id_cgl": "888343565", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "888343565", "id_cgl": "888343565",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
                 "defeito": "1BL", "motivo": "BOLSA (1BL)", "corrida": 474651, "placa": 2601, "volume": "32186656", "qualidade": "IFC280Y380T", "espessura": 0.70, "largura": 1420.0, "peso": 2.66, "local_queda": "PLTCM", "data_evento": "2026-09-10 17:01", "forno": "4", "veio": "4", "norma": "10S2", "cod_fabricacao": "HL", "peca_seguranca": "N",
                 "tempo_vacuo": "0:16:20", "rota_corrida": "LD3 -> FP1 -> RHD -> ML2",
                 "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "32158356", "id_cgl": "32158356", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "32158356", "id_cgl": "32158356",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1GF", "motivo": "GOTA FRIA (1GF)", "corrida": 272118, "placa": 2601, "volume": "1957970", "qualidade": "JSC590R", "espessura": 1.80, "largura": 1100.0, "peso": 2.42, "local_queda": "REB6", "data_evento": "2026-09-10 08:56", "forno": "3", "veio": "7", "norma": "10S2", "cod_fabricacao": "81", "peca_seguranca": "'-",
+                "defeito": "1GF", "motivo": "GOTA FRIA (1GF)", "corrida": 272118, "placa": 2601, "volume": "1957970", "qualidade": "JSC590R", "espessura": 1.80, "largura": 1100.0, "peso": 2.42, "local_queda": "REB6", "data_evento": "2026-08-10 08:56", "forno": "3", "veio": "7", "norma": "10S2", "cod_fabricacao": "81", "peca_seguranca": "'-",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["PLACÃO DE TOPO (FIM) DA CORRIDA (POR VEIO)", "PLACA DE FINAL DE DISTRIBUIDOR (FD)"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "31992392", "id_cgl": "31992392", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "31992392", "id_cgl": "31992392",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1ES", "motivo": "ESFOLIAMENTO (1ES)", "corrida": 473802, "placa": 2301, "volume": "887197326", "qualidade": "NTUQC250", "espessura": 2.00, "largura": 1271.0, "peso": 13.66, "local_queda": "LTQ", "data_evento": "2026-09-10 08:41", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "DY", "peca_seguranca": "'-",
+                "defeito": "1ES", "motivo": "ESFOLIAMENTO (1ES)", "corrida": 473802, "placa": 2301, "volume": "887197326", "qualidade": "NTUQC250", "espessura": 2.00, "largura": 1271.0, "peso": 13.66, "local_queda": "LTQ", "data_evento": "2026-08-10 08:41", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "DY", "peca_seguranca": "'-",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "887197326", "id_cgl": "887197326", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "887197326", "id_cgl": "887197326",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 472727, "placa": 271, "volume": "1395470", "qualidade": "FG52806FEP05", "espessura": 0.70, "largura": 1450.0, "peso": 2.98, "local_queda": "REB3", "data_evento": "2026-09-09 16:10", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "24", "peca_seguranca": "Não",
+                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 472727, "placa": 271, "volume": "1395470", "qualidade": "FG52806FEP05", "espessura": 0.70, "largura": 1450.0, "peso": 2.98, "local_queda": "REB3", "data_evento": "2026-08-09 16:10", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "24", "peca_seguranca": "Não",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "30558320", "id_cgl": "30558320", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "30558320", "id_cgl": "30558320",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1GF", "motivo": "GOTA FRIA (1GF)", "corrida": 577557, "placa": 2701, "volume": "1885250", "qualidade": "LAH420Y480T", "espessura": 2.50, "largura": 1200.0, "peso": 14.85, "local_queda": "DEC3", "data_evento": "2026-09-06 11:52", "forno": "5", "veio": "4", "norma": "M1 3", "cod_fabricacao": "UZ", "peca_seguranca": "K",
+                "defeito": "1GF", "motivo": "GOTA FRIA (1GF)", "corrida": 577557, "placa": 2701, "volume": "1885250", "qualidade": "LAH420Y480T", "espessura": 2.50, "largura": 1200.0, "peso": 14.85, "local_queda": "DEC3", "data_evento": "2026-08-06 11:52", "forno": "5", "veio": "4", "norma": "M1 3", "cod_fabricacao": "UZ", "peca_seguranca": "K",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "1885250", "id_cgl": "1885250", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "1885250", "id_cgl": "1885250",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577059, "placa": 2901, "volume": "1930110", "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 6.60, "local_queda": "REB7", "data_evento": "2026-09-05 07:55", "forno": "6", "veio": "2", "norma": "87J2", "cod_fabricacao": "MB", "peca_seguranca": "'-",
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577059, "placa": 2901, "volume": "1930110", "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 6.60, "local_queda": "REB7", "data_evento": "2026-08-05 07:55", "forno": "6", "veio": "2", "norma": "87J2", "cod_fabricacao": "MB", "peca_seguranca": "'-",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
                 "id_bf": "32050060", "id_cgl": "32050060",
-                "cgl_anterior": { "volume": "32041295", "corrida": 474906, "placa": 2801, "qualidade": "VWCR3", "espessura": 0.60, "largura": 1280.0, "peso": 14.45, "data_producao": "2026-09-05 04:58:00" },
-                "cgl_alvo": { "volume": "1930110", "corrida": 577059, "placa": 2901, "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 6.60, "data_producao": "2026-09-05 05:03:00" },
-                "cgl_posterior": { "volume": "1930077", "corrida": 577282, "placa": 2701, "qualidade": "SCGA270DX", "espessura": 0.80, "largura": 1350.0, "peso": 14.96, "data_producao": "2026-09-05 05:06:00" }
+                "cgl_anterior": { "volume": "32041295", "corrida": 474906, "placa": 2801, "qualidade": "VWCR3", "espessura": 0.60, "largura": 1280.0, "peso": 14.45, "data_producao": "2026-08-05 04:58:00" },
+                "cgl_alvo": { "volume": "1930110", "corrida": 577059, "placa": 2901, "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 6.60, "data_producao": "2026-08-05 05:03:00" },
+                "cgl_posterior": { "volume": "1930077", "corrida": 577282, "placa": 2701, "qualidade": "SCGA270DX", "espessura": 0.80, "largura": 1350.0, "peso": 14.96, "data_producao": "2026-08-05 05:06:00" }
             },
             {
-                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577059, "placa": 2901, "volume": "1929970", "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 9.67, "local_queda": "REB7", "data_evento": "2026-09-05 07:54", "forno": "6", "veio": "2", "norma": "87J2", "cod_fabricacao": "MB", "peca_seguranca": "'-",
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 577059, "placa": 2901, "volume": "1929970", "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 9.67, "local_queda": "REB7", "data_evento": "2026-08-05 07:54", "forno": "6", "veio": "2", "norma": "87J2", "cod_fabricacao": "MB", "peca_seguranca": "'-",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
                 "id_bf": "32050060", "id_cgl": "32050060",
-                "cgl_anterior": { "volume": "32105443", "corrida": 577257, "placa": 2301, "qualidade": "SGARC340BH", "espessura": 0.60, "largura": 847.0, "peso": 6.80, "data_producao": "2026-09-05 04:42:00" },
-                "cgl_alvo": { "volume": "1929970", "corrida": 577059, "placa": 2901, "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 9.67, "data_producao": "2026-09-05 04:46:00" },
-                "cgl_posterior": { "volume": "32041295", "corrida": 474906, "placa": 2801, "qualidade": "VWCR3", "espessura": 0.60, "largura": 1280.0, "peso": 14.45, "data_producao": "2026-09-05 04:58:00" }
+                "cgl_anterior": { "volume": "32105443", "corrida": 577257, "placa": 2301, "qualidade": "SGARC340BH", "espessura": 0.60, "largura": 847.0, "peso": 6.80, "data_producao": "2026-08-05 04:42:00" },
+                "cgl_alvo": { "volume": "1929970", "corrida": 577059, "placa": 2901, "qualidade": "EMS1508EEPPC", "espessura": 0.70, "largura": 1400.0, "peso": 9.67, "data_producao": "2026-08-05 04:46:00" },
+                "cgl_posterior": { "volume": "32041295", "corrida": 474906, "placa": 2801, "qualidade": "VWCR3", "espessura": 0.60, "largura": 1280.0, "peso": 14.45, "data_producao": "2026-08-05 04:58:00" }
             },
             {
-                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 573593, "placa": 2701, "volume": "1926943", "qualidade": "NBR6658GF50", "espessura": 0.50, "largura": 1290.0, "peso": 17.16, "local_queda": "REB3", "data_evento": "2026-09-04 16:41", "forno": "4", "veio": "4", "norma": "10S2", "cod_fabricacao": "AA", "peca_seguranca": "Não",
+                "defeito": "1ESPF", "motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "corrida": 573593, "placa": 2701, "volume": "1926943", "qualidade": "NBR6658GF50", "espessura": 0.50, "largura": 1290.0, "peso": 17.16, "local_queda": "REB3", "data_evento": "2026-08-04 16:41", "forno": "4", "veio": "4", "norma": "10S2", "cod_fabricacao": "AA", "peca_seguranca": "Não",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["PLACÃO DE BASE (INÍCIO) DA CORRIDA (POR VEIO)", "PLACA DE EMENDA DE CORRIDA", "PLACAS COM AJUSTE DE MOLDE (AM)", "PLACÃO COM VARIAÇÃO DE LARGURA", "PLACAS LINGOTADAS SEM VÁLVULA LONGA", "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN", "PRIMEIRA PLACA POSTERIOR À PLACA LINGOTADA COM NÍVEL DE AÇO NO DISTRIBUIDOR <= 13 T (43)"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "32037651", "id_cgl": "32037651", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "32037651", "id_cgl": "32037651",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 474827, "placa": 2201, "volume": "1890260", "qualidade": "SAE1010", "espessura": 4.50, "largura": 1250.0, "peso": 1.75, "local_queda": "DEC3", "data_evento": "2026-09-04 08:06", "forno": "5", "veio": "2", "norma": "10S2", "cod_fabricacao": "DD", "peca_seguranca": "K",
+                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 474827, "placa": 2201, "volume": "1890260", "qualidade": "SAE1010", "espessura": 4.50, "largura": 1250.0, "peso": 1.75, "local_queda": "DEC3", "data_evento": "2026-08-04 08:06", "forno": "5", "veio": "2", "norma": "10S2", "cod_fabricacao": "DD", "peca_seguranca": "K",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "1890260", "id_cgl": "1890260", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "1890260", "id_cgl": "1890260",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1GFTQ", "motivo": "GOTA FRIA TRINCA DE QUINA (1GFTQ)", "corrida": 474336, "placa": 2401, "volume": "1923455", "qualidade": "MSCR06", "espessura": 0.65, "largura": 1640.0, "peso": 1.95, "local_queda": "REB7", "data_evento": "2026-09-04 01:01", "forno": "5", "veio": "3", "norma": "30", "cod_fabricacao": "24", "peca_seguranca": "Não",
+                "defeito": "1GFTQ", "motivo": "GOTA FRIA TRINCA DE QUINA (1GFTQ)", "corrida": 474336, "placa": 2401, "volume": "1923455", "qualidade": "MSCR06", "espessura": 0.65, "largura": 1640.0, "peso": 1.95, "local_queda": "REB7", "data_evento": "2026-08-04 01:01", "forno": "5", "veio": "3", "norma": "30", "cod_fabricacao": "24", "peca_seguranca": "Não",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
                 "id_bf": "32011659", "id_cgl": "32011659",
-                "cgl_anterior": { "volume": "1923431", "corrida": 473058, "placa": 2501, "qualidade": "FG52806FEP04", "espessura": 0.65, "largura": 1360.0, "peso": 14.23, "data_producao": "2026-09-03 23:46:00" },
-                "cgl_alvo": { "volume": "1923455", "corrida": 474336, "placa": 2401, "qualidade": "MSCR06", "espessura": 0.65, "largura": 1640.0, "peso": 1.95, "data_producao": "2026-09-03 23:48:00" },
-                "cgl_posterior": { "volume": "1923351", "corrida": 173894, "placa": 2101, "qualidade": "SCGA440", "espessura": 1.00, "largura": 1410.0, "peso": 16.65, "data_producao": "2026-09-03 23:52:00" }
+                "cgl_anterior": { "volume": "1923431", "corrida": 473058, "placa": 2501, "qualidade": "FG52806FEP04", "espessura": 0.65, "largura": 1360.0, "peso": 14.23, "data_producao": "2026-08-03 23:46:00" },
+                "cgl_alvo": { "volume": "1923455", "corrida": 474336, "placa": 2401, "qualidade": "MSCR06", "espessura": 0.65, "largura": 1640.0, "peso": 1.95, "data_producao": "2026-08-03 23:48:00" },
+                "cgl_posterior": { "volume": "1923351", "corrida": 173894, "placa": 2101, "qualidade": "SCGA440", "espessura": 1.00, "largura": 1410.0, "peso": 16.65, "data_producao": "2026-08-03 23:52:00" }
             },
             {
-                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 474312, "placa": 251, "volume": "1794604", "qualidade": "NBRZAR230", "espessura": 1.11, "largura": 1200.0, "peso": 4.37, "local_queda": "REB3", "data_evento": "2026-09-03 16:33", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "AA", "peca_seguranca": "'-",
+                "defeito": "1FP", "motivo": "FALTA DE PESO (1FP)", "corrida": 474312, "placa": 251, "volume": "1794604", "qualidade": "NBRZAR230", "espessura": 1.11, "largura": 1200.0, "peso": 4.37, "local_queda": "REB3", "data_evento": "2026-08-03 16:33", "forno": "4", "veio": "2", "norma": "10S2", "cod_fabricacao": "AA", "peca_seguranca": "'-",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "31615802", "id_cgl": "31615802", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "31615802", "id_cgl": "31615802",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             },
             {
-                "defeito": "1ES", "motivo": "ESFOLIAMENTO (1ES)", "corrida": 474861, "placa": 2201, "volume": "1918330", "qualidade": "NBR7008ZEE4", "espessura": 0.90, "largura": 1700.0, "peso": 12.64, "local_queda": "REB7", "data_evento": "2026-09-03 01:39", "forno": "5", "veio": "2", "norma": "27J3", "cod_fabricacao": "24", "peca_seguranca": "'-",
+                "defeito": "1ES", "motivo": "ESFOLIAMENTO (1ES)", "corrida": 474861, "placa": 2201, "volume": "1918330", "qualidade": "NBR7008ZEE4", "espessura": 0.90, "largura": 1700.0, "peso": 12.64, "local_queda": "REB7", "data_evento": "2026-08-03 01:39", "forno": "5", "veio": "2", "norma": "27J3", "cod_fabricacao": "24", "peca_seguranca": "'-",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["PLACA DE EMENDA DE CORRIDA", "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN", "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
                 "id_bf": "31986914", "id_cgl": "31986914",
-                "cgl_anterior": { "volume": "32065846", "corrida": 576240, "placa": 2401, "qualidade": "GMW2MSTSCR4", "espessura": 0.65, "largura": 1560.0, "peso": 22.07, "data_producao": "2026-09-03 00:07:00" },
-                "cgl_alvo": { "volume": "1918330", "corrida": 474861, "placa": 2201, "qualidade": "NBR7008ZEE4", "espessura": 0.90, "largura": 1700.0, "peso": 12.64, "data_producao": "2026-09-03 00:10:00" },
-                "cgl_posterior": { "volume": "32065858", "corrida": 576240, "placa": 2401, "qualidade": "GMW2MSTSCR4", "espessura": 0.65, "largura": 1560.0, "peso": 11.33, "data_producao": "2026-09-03 00:18:00" }
+                "cgl_anterior": { "volume": "32065846", "corrida": 576240, "placa": 2401, "qualidade": "GMW2MSTSCR4", "espessura": 0.65, "largura": 1560.0, "peso": 22.07, "data_producao": "2026-08-03 00:07:00" },
+                "cgl_alvo": { "volume": "1918330", "corrida": 474861, "placa": 2201, "qualidade": "NBR7008ZEE4", "espessura": 0.90, "largura": 1700.0, "peso": 12.64, "data_producao": "2026-08-03 00:10:00" },
+                "cgl_posterior": { "volume": "32065858", "corrida": 576240, "placa": 2401, "qualidade": "GMW2MSTSCR4", "espessura": 0.65, "largura": 1560.0, "peso": 11.33, "data_producao": "2026-08-03 00:18:00" }
             },
             {
-                "defeito": "1GF", "motivo": "GOTA FRIA (1GF)", "corrida": 577458, "placa": 2901, "volume": "1885250", "qualidade": "SAE1010", "espessura": 4.50, "largura": 1250.0, "peso": 14.85, "local_queda": "DEC3", "data_evento": "2026-09-01 14:35", "forno": "5", "veio": "2", "norma": "10S2", "cod_fabricacao": "DD", "peca_seguranca": "K",
+                "defeito": "1GF", "motivo": "GOTA FRIA (1GF)", "corrida": 577458, "placa": 2901, "volume": "1885250", "qualidade": "SAE1010", "espessura": 4.50, "largura": 1250.0, "peso": 14.85, "local_queda": "DEC3", "data_evento": "2026-08-01 14:35", "forno": "5", "veio": "2", "norma": "10S2", "cod_fabricacao": "DD", "peca_seguranca": "K",
                 "tempo_vacuo": "0:20:00", "rota_corrida": "LD -> RH -> ML",
                 "anormalidades": ["Nenhuma anormalidade operacional registrada"],
                 "escarfagem_info": { "escarfada": "Não", "vel_face_a": null, "vel_face_b": null, "def_face_a": null, "def_face_b": null },
-                "id_bf": "1885250", "id_cgl": "1885250", "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
+                "id_bf": "1885250", "id_cgl": "1885250",
+                "cgl_anterior": null, "cgl_alvo": null, "cgl_posterior": null
             }
         ];
+
+        let dadosFiltradosAtuais = [...dadosPadraoIniciais];
+
+        function parseDataParaString(dataInput) {
+            if (!dataInput) return "2026-09-15 12:00";
+            let str = String(dataInput).trim();
+            if (!isNaN(str) && Number(str) > 30000) {
+                let d = new Date(Math.round((Number(str) - (25567 + 2)) * 86400 * 1000));
+                return d.toISOString().slice(0, 16).replace('T', ' ');
+            }
+            return str.replace('T', ' ').slice(0, 16);
+        }
+
+        function processarObsExcel(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet);
+                    if (json && json.length > 0) {
+                        dadosObsGlobal = json;
+                        alert(`📝 Planilha de Observações integrada com sucesso! (${dadosObsGlobal.length} registros).`);
+                        mudarRegistro();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro ao processar planilha de observações.");
+                }
+            };
+            reader.readAsArrayBuffer(files[0]);
+        }
+
+        function processarTqExcel(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet);
+                    if (json && json.length > 0) {
+                        dadosTQGlobal = json;
+                        alert(`🔥 Planilha CONSULTA_TQ.xlsx integrada com sucesso! (${dadosTQGlobal.length} registros).`);
+                        mudarRegistro();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro ao processar CONSULTA_TQ.xlsx.");
+                }
+            };
+            reader.readAsArrayBuffer(files[0]);
+        }
 
         function processarExcel(event) {
             const files = event.target.files;
@@ -473,43 +618,48 @@
                     const json = XLSX.utils.sheet_to_json(firstSheet);
                     
                     if (json && json.length > 0) {
+                        if (json[0]['NUM_BOBINA_QUENTE'] !== undefined || json[0]['IDT_BF'] !== undefined) {
+                            dadosTQGlobal = json;
+                            alert(`🔥 Planilha CONSULTA_TQ.xlsx integrada com sucesso! (${dadosTQGlobal.length} registros).`);
+                            aplicarFiltrosAvancados();
+                            return;
+                        }
+
                         dadosPadraoIniciais = json.map(row => {
-                            let corr = Number(row['Número Corrida'] || 474651);
+                            let corr = Number(row['Número Corrida'] || row['NUM_CORR_ACI'] || 474651);
                             let plc = Number(row['Número Placa'] || 2601);
                             let pesoKg = Number(row['Peso'] || 10000);
                             let pesoTon = pesoKg > 100 ? pesoKg / 1000 : (isNaN(pesoKg) ? 10.0 : pesoKg);
-                            let idtBf = String(row['BF_PLTCM'] || '32186656');
-                            let idtCgl = String(row['BF_CGL'] || '1833892');
-                            if (idtCgl === 'X' || !idtCgl) idtCgl = idtBf;
+                            let dataEvt = parseDataParaString(row['Data Real Evento'] || row['DT_PRODC_OBTD_ACI'] || '2026-09-15 12:00');
+                            let vol = String(row['N° Volume'] || row['NrPlaca'] || '32186656').trim();
 
                             return {
-                                defeito: String(row['Cód# Defeito Legado'] || row['DEFEITO'] || '1BL').trim(),
+                                defeito: String(row['Cód# Defeito Legado'] || row['Cód. Defeito Legado'] || row['DEFEITO'] || '1BL').trim(),
                                 motivo: String(row['Motivo'] || 'Inspeção de Qualidade').trim(),
                                 corrida: corr,
                                 placa: plc,
-                                volume: String(row['N° Volume'] || '32186656').trim(),
+                                volume: vol,
                                 qualidade: String(row['Qualidade'] || 'SAE1010').trim(),
                                 espessura: Number(row['Espessura'] || 0.70),
                                 largura: Number(row['Largura'] || 1250.0),
                                 peso: pesoTon,
                                 local_queda: String(row['Local da Queda'] || 'PLTCM').trim(),
-                                data_evento: String(row['Data Real Evento'] || '2026-09-15 12:00').trim(),
+                                data_evento: dataEvt,
                                 forno: String(row['Forno'] || '4'),
                                 veio: String(row['Veio'] || '2'),
-                                norma: String(row['Norma'] || '10S2'),
-                                cod_fabricacao: String(row['Cód# Fabric# Previsto'] || 'CF-1000').trim(),
+                                norma: String(row['Norma'] || row['Cód. Toler.'] || '10S2').trim(),
+                                cod_fabricacao: String(row['Cód# Fabric# Previsto'] || row['Cód. Fabric. Previsto'] || 'CF-1000').trim(),
                                 peca_seguranca: String(row['Peça Segurança'] || 'Não').trim(),
                                 tempo_vacuo: "0:20:00",
                                 rota_corrida: "LD -> RH -> ML",
                                 anormalidades: ["PLACA DE EMENDA DE CORRIDA"],
                                 escarfagem_info: { escarfada: 'Não', vel_face_a: null, vel_face_b: null, def_face_a: null, def_face_b: null },
-                                id_bf: idtBf,
-                                id_cgl: idtCgl,
-                                cgl_anterior: null, cgl_alvo: null, cgl_posterior: null
+                                id_bf: vol,
+                                id_cgl: vol
                             };
                         });
-                        popularSelect();
-                        alert(`✅ Planilha Consulta carregada com sucesso! ${dadosPadraoIniciais.length} registros integrados.`);
+                        aplicarFiltrosAvancados();
+                        alert(`✅ Planilha de Quedas carregada com sucesso! ${dadosPadraoIniciais.length} registros integrados.`);
                     }
                 } catch (err) {
                     console.error(err);
@@ -517,6 +667,67 @@
                 }
             };
             reader.readAsArrayBuffer(files[0]);
+        }
+
+        function aplicarFiltrosAvancados() {
+            const mesSel = document.getElementById('filtroMes').value;
+            const defSel = document.getElementById('filtroDefeito').value;
+            const escSel = document.getElementById('filtroEscarfagem').value;
+
+            dadosFiltradosAtuais = dadosPadraoIniciais.filter(item => {
+                if (mesSel !== 'TODOS' && !item.data_evento.startsWith(mesSel)) return false;
+                if (defSel !== 'TODOS' && item.defeito !== defSel) return false;
+                if (escSel === 'NAO_ESCARFADA' && item.escarfagem_info.escarfada !== 'Não') return false;
+                if (escSel === 'ESCARFADA' && item.escarfagem_info.escarfada !== 'Sim') return false;
+                return true;
+            });
+
+            popularSelect();
+            atualizarCardAnaliseCritica(mesSel);
+        }
+
+        function atualizarCardAnaliseCritica(mesSel) {
+            const espfSemEsc = dadosPadraoIniciais.filter(item => {
+                if (item.defeito !== '1ESPF') return false;
+                if (item.escarfagem_info.escarfada !== 'Não') return false;
+                if (mesSel !== 'TODOS' && !item.data_evento.startsWith(mesSel)) return false;
+                return true;
+            });
+
+            let totalPeso = espfSemEsc.reduce((acc, curr) => acc + (curr.peso || 0), 0);
+            document.getElementById('badgeAnaliseCritica').innerText = `${espfSemEsc.length} Bobinas • ${totalPeso.toFixed(2)} t`;
+
+            const container = document.getElementById('containerAnaliseCritica');
+            container.innerHTML = '';
+
+            if (espfSemEsc.length === 0) {
+                container.innerHTML = `<div class="col-span-3 text-center text-slate-400 text-xs py-4 italic">Nenhuma bobina 1ESPF sem escarfagem encontrada para o período selecionado.</div>`;
+                return;
+            }
+
+            espfSemEsc.forEach(item => {
+                let div = document.createElement('div');
+                div.className = "bg-slate-50 border border-slate-200/80 hover:border-emerald-500 rounded-2xl p-3 text-[11px] cursor-pointer transition shadow-sm hover:shadow";
+                div.onclick = function() {
+                    const select = document.getElementById('selectRegistro');
+                    for(let i = 0; i < select.options.length; i++) {
+                        if(select.options[i].text.includes(item.volume)) {
+                            select.selectedIndex = i;
+                            mudarRegistro();
+                            break;
+                        }
+                    }
+                };
+                div.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-emerald-700 font-bold">IDT Volume: ${item.volume}</span>
+                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">${item.peso.toFixed(2)} t</span>
+                    </div>
+                    <span class="text-slate-600 block">Corrida: ${item.corrida} | Placa: ${item.placa}</span>
+                    <span class="text-slate-500 text-[10px] block mt-0.5">Norma: ${item.norma} | Cód. Fab: ${item.cod_fabricacao}</span>
+                `;
+                container.appendChild(div);
+            });
         }
 
         function copiarCodigoBase() {
@@ -557,7 +768,7 @@
 
         function renderizarGraficos() {
             const defs = {};
-            dadosPadraoIniciais.forEach(d => {
+            dadosFiltradosAtuais.forEach(d => {
                 const def = d.defeito || 'OUTROS';
                 defs[def] = (defs[def] || 0) + (d.peso || 0);
             });
@@ -591,14 +802,18 @@
                         }
                     },
                     scales: {
-                        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+                        x: { 
+                            beginAtZero: true, 
+                            ticks: { font: { size: 10 } },
+                            suggestedMax: Math.max(...sortedDef.data, 1) * 1.2
+                        },
                         y: { ticks: { font: { size: 10 } } }
                     }
                 }
             });
 
             const fabs = {};
-            dadosPadraoIniciais.forEach(d => {
+            dadosFiltradosAtuais.forEach(d => {
                 const cf = d.cod_fabricacao || 'N/I';
                 fabs[cf] = (fabs[cf] || 0) + (d.peso || 0);
             });
@@ -638,7 +853,7 @@
                         y: { 
                             beginAtZero: true, 
                             ticks: { font: { size: 10 } },
-                            suggestedMax: Math.max(...sortedFab.data) * 1.15
+                            suggestedMax: Math.max(...sortedFab.data, 1) * 1.2
                         },
                         x: { ticks: { font: { size: 10 } } }
                     }
@@ -646,7 +861,7 @@
             });
 
             const locais = {};
-            dadosPadraoIniciais.forEach(d => {
+            dadosFiltradosAtuais.forEach(d => {
                 const loc = d.local_queda || 'REB';
                 locais[loc] = (locais[loc] || 0) + (d.peso || 0);
             });
@@ -682,7 +897,7 @@
                         y: { 
                             beginAtZero: true, 
                             ticks: { font: { size: 10 } },
-                            suggestedMax: Math.max(...sortedLoc.data) * 1.18
+                            suggestedMax: Math.max(...sortedLoc.data, 1) * 1.2
                         },
                         x: { ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: false } }
                     }
@@ -692,21 +907,35 @@
 
         function popularSelect() {
             try {
-                dadosPadraoIniciais.sort((a, b) => parseDataSegura(b.data_evento) - parseDataSegura(a.data_evento));
+                dadosFiltradosAtuais.sort((a, b) => parseDataSegura(b.data_evento) - parseDataSegura(a.data_evento));
 
                 const select = document.getElementById('selectRegistro');
                 if (!select) return;
                 select.innerHTML = '';
-                dadosPadraoIniciais.forEach((item, idx) => {
+                
+                if (dadosFiltradosAtuais.length === 0) {
                     const opt = document.createElement('option');
-                    opt.value = idx;
-                    // Incluindo o Número do Material (Volume) de forma bem clara no filtro para facilitar a operação
+                    opt.text = "⚠️ Nenhum material encontrado com os filtros selecionados";
+                    select.appendChild(opt);
+                    document.getElementById('badgeContagem').innerText = "0 ocorrências encontradas";
+                    document.getElementById('contadorFiltroBadge').innerText = "0 registros";
+                    
+                    document.getElementById('tabelaBqCorpo').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Nenhum registro para exibir.</td></tr>`;
+                    document.getElementById('tabelaPltcmCorpo').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Nenhum registro para exibir.</td></tr>`;
+                    document.getElementById('tabelaCglCorpo').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Nenhum registro para exibir.</td></tr>`;
+                    return;
+                }
+
+                dadosFiltradosAtuais.forEach((item, localIdx) => {
+                    const globalIdx = dadosPadraoIniciais.findIndex(d => d.volume === item.volume && d.data_evento === item.data_evento);
+                    const opt = document.createElement('option');
+                    opt.value = globalIdx !== -1 ? globalIdx : localIdx;
                     opt.text = `📦 Mat: ${item.volume} | 📅 ${item.data_evento} | [Def: ${item.defeito}] | Corrida ${item.corrida} | Placa ${item.placa}`;
                     select.appendChild(opt);
                 });
                 
-                const badge = document.getElementById('badgeContagem');
-                if (badge) badge.innerText = `${dadosPadraoIniciais.length} ocorrências carregadas`;
+                document.getElementById('badgeContagem').innerText = `${dadosFiltradosAtuais.length} ocorrências exibidas`;
+                document.getElementById('contadorFiltroBadge').innerText = `Exibindo ${dadosFiltradosAtuais.length} de ${dadosPadraoIniciais.length} registros`;
                 
                 renderizarGraficos();
                 mudarRegistro();
@@ -733,9 +962,9 @@
         function mudarRegistro() {
             try {
                 const select = document.getElementById('selectRegistro');
-                if (!select) return;
-                const idx = select.value;
-                const r = dadosPadraoIniciais[idx];
+                if (!select || select.value === "") return;
+                const globalIdx = select.value;
+                const r = dadosPadraoIniciais[globalIdx];
                 if (!r) return;
 
                 document.getElementById('relatorioTexto').innerHTML =
@@ -774,12 +1003,65 @@
                     rotaElem.innerText = r.rota_corrida || 'Não informada';
                 }
 
-                // Tabela PLTCM (Anterior / Alvo / Posterior conectados aos vizinhos reais)
+                // Função de cruzamento robusta com CONSULTA_TQ.xlsx usando IDT_BF e NUM_BOBINA_QUENTE
+                function obterDadosBQReal(dItem, isAlvo) {
+                    // Procura na base TQ pelo IDT_BF correspondente ao volume ou placa/corrida
+                    let tqMatch = dadosTQGlobal.find(b => 
+                        String(b['IDT_BF'] || '').trim() === String(dItem.id_bf || dItem.volume).trim() ||
+                        String(b['IDT_BF'] || '').trim() === String(dItem.volume).trim()
+                    );
+
+                    let numBqReal = tqMatch ? (tqMatch['NUM_BOBINA_QUENTE'] || tqMatch['IDT_BQ']) : (Number(dItem.volume) > 1000000 ? (Number(dItem.volume) + 500000) : '-');
+                    let defProc = tqMatch ? (tqMatch['COD_DEFEITO'] || '-') : (isAlvo ? dItem.defeito : '-');
+                    let tipoProc = 'C';
+
+                    // Busca nas observações gerais também
+                    let matchObs = dadosObsGlobal.filter(o => String(o['IDT_MATERIAL'] || '').trim() === String(dItem.volume).trim());
+                    let obsText = matchObs.length > 0 ? matchObs.map(o => o['TEXTO_OBS']).join(' | ') : (isAlvo ? `Recusa por ${dItem.defeito} (${dItem.motivo})` : 'Aprovado no Processo');
+
+                    return { numBq: numBqReal, def: defProc, tipo: tipoProc, obs: obsText };
+                }
+
+                // Tabela BQ Sequencial (Anterior / Alvo / Posterior)
+                const tbodyBq = document.getElementById('tabelaBqCorpo');
+                if (tbodyBq) {
+                    tbodyBq.innerHTML = '';
+                    let numericGlobalIdx = Number(globalIdx);
+
+                    let itemAntObj = numericGlobalIdx < dadosPadraoIniciais.length - 1 ? dadosPadraoIniciais[numericGlobalIdx + 1] : r;
+                    let itemPostObj = numericGlobalIdx > 0 ? dadosPadraoIniciais[numericGlobalIdx - 1] : r;
+
+                    [
+                        { label: '-1 (Anterior)', item: itemAntObj, alvo: false },
+                        { label: 'ALVO (Recusado)', item: r, alvo: true },
+                        { label: '+1 (Posterior)', item: itemPostObj, alvo: false }
+                    ].forEach(l => {
+                        const tr = document.createElement('tr');
+                        tr.className = l.alvo ? "bg-amber-50/50" : "";
+                        let d = l.item;
+                        let info = obterDadosBQReal(d, l.alvo);
+
+                        tr.innerHTML = `
+                            <td class="p-3.5 text-center"><span class="px-2 py-1 rounded text-[10px] uppercase ${l.alvo ? 'bg-amber-100 text-amber-800 font-bold border border-amber-300' : 'bg-slate-100 text-slate-700'}">${l.label}</span></td>
+                            <td class="p-3.5 font-mono ${l.alvo ? 'text-amber-700 font-bold' : 'text-slate-700'}">${info.numBq}</td>
+                            <td class="p-3.5 text-center font-mono text-slate-700">${d.corrida}</td>
+                            <td class="p-3.5 font-bold text-slate-800">${d.qualidade}</td>
+                            <td class="p-3.5 text-center font-mono font-bold ${info.def !== '-' ? 'text-rose-600' : 'text-slate-400'}">${info.def}</td>
+                            <td class="p-3.5 text-center font-bold text-slate-700">${info.def !== '-' ? (info.tipo === 'C' ? 'C - Concerto' : 'I - Interno') : '-'}</td>
+                            <td class="p-3.5 text-slate-700 italic">${info.obs}</td>
+                            <td class="p-3.5 font-mono text-slate-700">${d.data_evento}</td>
+                        `;
+                        tbodyBq.appendChild(tr);
+                    });
+                }
+
+                // Tabela PLTCM
                 const tbodyPltcm = document.getElementById('tabelaPltcmCorpo');
                 if (tbodyPltcm) {
                     tbodyPltcm.innerHTML = '';
-                    let itemAnterior = idx < dadosPadraoIniciais.length - 1 ? dadosPadraoIniciais[Number(idx) + 1] : r;
-                    let itemPosterior = idx > 0 ? dadosPadraoIniciais[Number(idx) - 1] : r;
+                    let numericGlobalIdx = Number(globalIdx);
+                    let itemAnterior = numericGlobalIdx < dadosPadraoIniciais.length - 1 ? dadosPadraoIniciais[numericGlobalIdx + 1] : r;
+                    let itemPosterior = numericGlobalIdx > 0 ? dadosPadraoIniciais[numericGlobalIdx - 1] : r;
 
                     [
                         { label: '-1 (Anterior)', item: itemAnterior, alvo: false },
@@ -788,22 +1070,24 @@
                     ].forEach(l => {
                         const tr = document.createElement('tr');
                         tr.className = l.alvo ? "bg-rose-50/50" : "";
+                        let d = l.item;
+                        let info = obterDadosBQReal(d, l.alvo);
+
                         tr.innerHTML = `
                             <td class="p-3.5 text-center"><span class="px-2 py-1 rounded text-[10px] uppercase ${l.alvo ? 'bg-rose-100 text-rose-800 font-bold border border-rose-300' : 'bg-slate-100 text-slate-700'}">${l.label}</span></td>
-                            <td class="p-3.5 font-mono ${l.alvo ? 'text-rose-700 font-bold' : 'text-emerald-700 font-bold'}">${l.item.id_bf || l.item.volume}</td>
-                            <td class="p-3.5 text-center font-mono text-slate-700">${l.item.corrida}</td>
-                            <td class="p-3.5 text-center font-mono text-slate-700">${l.item.placa}</td>
-                            <td class="p-3.5 font-bold text-slate-800">${l.item.qualidade}</td>
-                            <td class="p-3.5 text-center font-mono text-slate-700">${l.item.espessura}mm / ${l.item.largura}mm</td>
-                            <td class="p-3.5 text-center font-mono font-bold text-slate-800">${l.item.peso.toFixed(2)} t</td>
-                            <td class="p-3.5 text-center font-bold">${l.item.escarfagem_info.escarfada}</td>
-                            <td class="p-3.5 font-mono text-slate-700">${l.item.data_evento}</td>
+                            <td class="p-3.5 font-mono ${l.alvo ? 'text-rose-700 font-bold' : 'text-emerald-700 font-bold'}">${d.volume}</td>
+                            <td class="p-3.5 text-center font-mono text-slate-700">${d.corrida}</td>
+                            <td class="p-3.5 font-bold text-slate-800">${d.qualidade}</td>
+                            <td class="p-3.5 text-center font-mono font-bold ${info.def !== '-' ? 'text-rose-600' : 'text-slate-400'}">${info.def}</td>
+                            <td class="p-3.5 text-center font-bold text-slate-700">${info.def !== '-' ? (info.tipo === 'C' ? 'C - Concerto' : 'I - Interno') : '-'}</td>
+                            <td class="p-3.5 text-slate-700 italic">${info.obs}</td>
+                            <td class="p-3.5 font-mono text-slate-700">${d.data_evento}</td>
                         `;
                         tbodyPltcm.appendChild(tr);
                     });
                 }
 
-                // Tabela CGL (Anterior / Alvo / Posterior reais)
+                // Tabela CGL
                 const tbodyCgl = document.getElementById('tabelaCglCorpo');
                 if (tbodyCgl) {
                     tbodyCgl.innerHTML = '';
@@ -814,7 +1098,7 @@
                     ];
 
                     if (!r.cgl_alvo) {
-                        tbodyCgl.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400 italic">Sequência CGL não mapeada para esta ocorrência específica na base atual.</td></tr>`;
+                        tbodyCgl.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Sequência CGL não mapeada para esta ocorrência específica na base atual.</td></tr>`;
                     } else {
                         linhasCgl.forEach(l => {
                             const tr = document.createElement('tr');
@@ -822,19 +1106,19 @@
                             if (!l.dado) {
                                 tr.innerHTML = `
                                     <td class="p-3.5 text-center"><span class="px-2 py-1 rounded text-[10px] uppercase bg-slate-100 text-slate-700">${l.label}</span></td>
-                                    <td colspan="8" class="p-3.5 text-slate-400 italic">Sem bobina adjacente registrada na sequência de CGL</td>
+                                    <td colspan="7" class="p-3.5 text-slate-400 italic">Sem bobina adjacente registrada na sequência de CGL</td>
                                 `;
                             } else {
                                 const d = l.dado;
+                                let info = obterDadosBQReal(d, l.alvo);
                                 tr.innerHTML = `
                                     <td class="p-3.5 text-center"><span class="px-2 py-1 rounded text-[10px] uppercase ${l.alvo ? 'bg-rose-100 text-rose-800 font-bold border border-rose-300' : 'bg-slate-100 text-slate-700'}">${l.label}</span></td>
                                     <td class="p-3.5 font-mono ${l.alvo ? 'text-rose-700 font-bold' : 'text-emerald-700 font-bold'}">${d.volume}</td>
                                     <td class="p-3.5 text-center font-mono text-slate-700">${d.corrida}</td>
-                                    <td class="p-3.5 text-center font-mono text-slate-700">${d.placa}</td>
                                     <td class="p-3.5 font-bold text-slate-800">${d.qualidade}</td>
-                                    <td class="p-3.5 text-center font-mono text-slate-700">${d.espessura}mm / ${d.largura}mm</td>
-                                    <td class="p-3.5 text-center font-mono font-bold text-slate-800">${d.peso.toFixed(2)} t</td>
-                                    <td class="p-3.5 text-center font-bold">${l.alvo ? r.escarfagem_info.escarfada : '-'}</td>
+                                    <td class="p-3.5 text-center font-mono font-bold ${info.def !== '-' ? 'text-rose-600' : 'text-slate-400'}">${info.def}</td>
+                                    <td class="p-3.5 text-center font-bold text-slate-700">${info.def !== '-' ? (info.tipo === 'C' ? 'C - Concerto' : 'I - Interno') : '-'}</td>
+                                    <td class="p-3.5 text-slate-700 italic">${info.obs}</td>
                                     <td class="p-3.5 font-mono text-slate-700">${d.data_producao}</td>
                                 `;
                             }
@@ -847,7 +1131,9 @@
             }
         }
 
-        window.onload = popularSelect;
+        window.onload = () => {
+            aplicarFiltrosAvancados();
+        };
     </script>
 </body>
 </html>
