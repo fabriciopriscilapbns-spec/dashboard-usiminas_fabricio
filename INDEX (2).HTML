@@ -26,7 +26,7 @@
                 <span class="text-xs text-slate-500 font-semibold">Elaborado por Fabrício Francioli Souza</span>
             </div>
             <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight mt-1 text-slate-900">ANÁLISE DE RECUSAS - UNIGAL / RASTREABILIDADE INTEGRADA</h1>
-            <p class="text-xs text-slate-400 mt-0.5 font-medium">Base Oficial Consolidada (12 Ocorrências Reais) — Atualizado em: <span id="lblAtualizado">17/09/2026</span></p>
+            <p class="text-xs text-slate-400 mt-0.5 font-medium">Base Consolidada (Escarfagem Faces A/B, Velocidades & Anormalidades) — Atualizado em: <span id="lblAtualizado">18/09/2026</span></p>
         </div>
         
         <!-- BOTÕES DE CONTROLE -->
@@ -46,7 +46,7 @@
 
     <main class="max-w-7xl mx-auto space-y-8">
 
-        <!-- CARD TÉCNICO COMPACTO: 5 OCORRÊNCIAS 1ESPF SEM ESCARFAGEM -->
+        <!-- CARD TÉCNICO: DESTAQUE 5 OCORRÊNCIAS 1ESPF SEM ESCARFAGEM -->
         <div class="bg-white border border-slate-200 p-5 md:p-6 rounded-3xl shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div class="space-y-2.5 w-full">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -124,20 +124,20 @@
             </div>
         </div>
 
-        <!-- FILTRO EXECUTIVO DE MATERIAIS / OCORRÊNCIAS -->
+        <!-- FILTRO DE SELEÇÃO DE MATERIAIS COM DATA NO INÍCIO -->
         <div class="card-exec p-5 md:p-6 rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50/40 to-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm">
             <div class="flex items-center gap-3 w-full md:w-auto">
                 <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
                     <i class="fa-solid fa-filter text-sm"></i>
                 </div>
                 <div>
-                    <span class="text-[10px] font-black uppercase text-emerald-700 tracking-wider block">Filtro de Seleção de Materiais</span>
-                    <h3 class="font-black text-slate-800 text-xs md:text-sm uppercase tracking-tight">Filtrar por Material / Bobina Recusada</h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5" id="badgeContagem">12 ocorrências oficiais carregadas.</p>
+                    <span class="text-[10px] font-black uppercase text-emerald-700 tracking-wider block">Filtro Cronológico de Bobinas Recusadas</span>
+                    <h3 class="font-black text-slate-800 text-xs md:text-sm uppercase tracking-tight">Filtrar por Data & Bobina</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5" id="badgeContagem">Ocorrências carregadas.</p>
                 </div>
             </div>
             <div class="w-full md:w-auto">
-                <select id="selectRegistro" onchange="mudarRegistro()" onclick="if (this.showPicker) this.showPicker();" class="p-3.5 text-xs border-2 border-emerald-500/50 rounded-2xl w-full md:w-[520px] bg-white font-bold text-slate-800 cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <select id="selectRegistro" onchange="mudarRegistro()" onclick="if (this.showPicker) this.showPicker();" class="p-3.5 text-xs border-2 border-emerald-500/50 rounded-2xl w-full md:w-[600px] bg-white font-bold text-slate-800 cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </select>
             </div>
         </div>
@@ -166,6 +166,7 @@
                     <span id="viewBadgeTipo" class="mt-3 inline-block px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-400 text-slate-900 shadow-sm">-</span>
                 </div>
 
+                <!-- 1. Máquinas / Equipamentos -->
                 <div class="absolute left-16 top-4 w-72 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                     <div class="absolute -bottom-16 left-10 w-1 h-16 bg-slate-300 rotate-45 origin-top"></div>
                     <h4 class="font-black text-xs text-slate-800 uppercase border-b border-slate-100 pb-2.5 mb-3 flex items-center gap-2">
@@ -181,16 +182,17 @@
                     </ul>
                 </div>
 
+                <!-- 2. Anormalidades da Placa -->
                 <div class="absolute left-[410px] top-4 w-72 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                     <div class="absolute -bottom-16 left-10 w-1 h-16 bg-slate-300 rotate-45 origin-top"></div>
                     <h4 class="font-black text-xs text-slate-800 uppercase border-b border-slate-100 pb-2.5 mb-3 flex items-center gap-2">
                         <i class="fa-solid fa-cogs text-emerald-600"></i> Anormalidades da Placa
                     </h4>
-                    <ul class="space-y-1 text-[11px] text-slate-600 font-medium">
-                        <li><strong>Anormalidades Operacionais:</strong> <div id="viewAnomalia" class="font-bold text-rose-600 text-[10px] mt-1.5 leading-tight max-h-24 overflow-y-auto bg-slate-50 p-2.5 border border-slate-200 rounded-xl">-</div></li>
-                    </ul>
+                    <div id="viewAnomaliasContainer" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    </div>
                 </div>
 
+                <!-- 3. Escarfagem (COM DADOS REAIS DE FACES A/B E VELOCIDADES) -->
                 <div class="absolute left-[760px] top-4 w-72 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                     <div class="absolute -bottom-16 left-10 w-1 h-16 bg-slate-300 rotate-45 origin-top"></div>
                     <h4 class="font-black text-xs text-slate-800 uppercase border-b border-slate-100 pb-2.5 mb-3 flex items-center gap-2">
@@ -198,12 +200,13 @@
                     </h4>
                     <ul class="space-y-2 text-[11px] text-slate-600 font-medium">
                         <li><strong>Placa Escarfada?:</strong> <span id="viewEscSimNao" class="font-bold text-slate-800">Não</span></li>
-                        <li><strong>Velocidade Face A / B:</strong> <span id="viewVelFace" class="font-mono text-slate-700">-</span></li>
+                        <li><strong>Velocidade Face A / B:</strong> <span id="viewVelFace" class="font-mono font-bold text-slate-700">-</span></li>
                         <li><strong>Defeitos Insp. Face A:</strong> <span id="viewDefFaceA" class="font-bold text-rose-600">-</span></li>
                         <li><strong>Defeitos Insp. Face B:</strong> <span id="viewDefFaceB" class="font-bold text-rose-600">-</span></li>
                     </ul>
                 </div>
 
+                <!-- 4. Especificações & Qualidade -->
                 <div class="absolute left-16 bottom-4 w-72 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                     <div class="absolute -top-16 left-10 w-1 h-16 bg-slate-300 -rotate-45 origin-bottom"></div>
                     <h4 class="font-black text-xs text-slate-800 uppercase border-b border-slate-100 pb-2.5 mb-3 flex items-center gap-2">
@@ -217,6 +220,7 @@
                     </ul>
                 </div>
 
+                <!-- 5. Rastreabilidade -->
                 <div class="absolute left-[410px] bottom-4 w-72 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                     <div class="absolute -top-16 left-10 w-1 h-16 bg-slate-300 -rotate-45 origin-bottom"></div>
                     <h4 class="font-black text-xs text-slate-800 uppercase border-b border-slate-100 pb-2.5 mb-3 flex items-center gap-2">
@@ -229,6 +233,7 @@
                     </ul>
                 </div>
 
+                <!-- 6. Vácuo & Corrida -->
                 <div class="absolute left-[760px] bottom-4 w-72 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                     <div class="absolute -top-16 left-10 w-1 h-16 bg-slate-300 -rotate-45 origin-bottom"></div>
                     <h4 class="font-black text-xs text-slate-800 uppercase border-b border-slate-100 pb-2.5 mb-3 flex items-center gap-2">
@@ -243,7 +248,7 @@
             </div>
         </div>
 
-        <!-- SEÇÃO PLTCM (ANTERIOR / ALVO / POSTERIOR) -->
+        <!-- SEÇÃO PLTCM -->
         <div class="card-exec p-6 rounded-3xl space-y-4">
             <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
                 <span class="bg-emerald-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">PLTCM</span>
@@ -273,7 +278,7 @@
             </div>
         </div>
 
-        <!-- SEÇÃO CGL (ANTERIOR / ALVO / POSTERIOR) -->
+        <!-- SEÇÃO CGL -->
         <div class="card-exec p-6 rounded-3xl space-y-4">
             <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
                 <span class="bg-blue-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">CGL</span>
@@ -326,19 +331,479 @@
             }
         }
 
+        // BASE DE DADOS COMPLETA INTEGRADA COM OS DADOS REAIS DE ESCARFAGEM
         let dadosPadraoIniciais = [
-            { "N° Volume": "1395470", "IDT_BF": "P1368770", "BQ": "886044686", "Def_TQ": "7MC", "BF_PLTCM": "30558320", "BF_CGL": "30558320", "Data Real Evento": "2026-09-09 16:10:47", "Qualidade": "FG52806FEP05", "Espessura": 0.7, "Largura": 1450, "Peso": 2.98, "Local da Queda": "REB3", "Número Corrida": 472727, "Número Placa": 271, "Cód# Defeito Legado": "1FP", "Motivo": "FALTA DE PESO (1FP)", "Cód# Fabric# Previsto": "24", "Grupo de Aço": "3IF-EC180" },
-            { "N° Volume": "1671689", "IDT_BF": "P1480990", "BQ": "886044687", "Def_TQ": "7MC", "BF_PLTCM": "30786377", "BF_CGL": "30794840", "Data Real Evento": "2026-09-14 09:57:33", "Qualidade": "GMW2MSTSCR4", "Espessura": 0.65, "Largura": 1560, "Peso": 4.90, "Local da Queda": "REB3", "Número Corrida": 473104, "Número Placa": 221, "Cód# Defeito Legado": "1FP", "Motivo": "FALTA DE PESO (1FP)", "Cód# Fabric# Previsto": "24", "Grupo de Aço": "3IF-EC180" },
-            { "N° Volume": "1794604", "IDT_BF": "P1781725", "BQ": "886044688", "Def_TQ": "10", "BF_PLTCM": "31615802", "BF_CGL": "31615802", "Data Real Evento": "2026-09-03 16:33:38", "Qualidade": "NBRZAR230", "Espessura": 1.11, "Largura": 1200, "Peso": 4.37, "Local da Queda": "REB7", "Número Corrida": 474312, "Número Placa": 251, "Cód# Defeito Legado": "1FP", "Motivo": "FALTA DE PESO (1FP)", "Cód# Fabric# Previsto": "AA", "Grupo de Aço": "3AA-HSS230" },
-            { "N° Volume": "1918330", "IDT_BF": "32065164", "BQ": "886044689", "Def_TQ": "27", "BF_PLTCM": "31986914", "BF_CGL": "31986914", "Data Real Evento": "2026-09-03 01:39:05", "Qualidade": "NBR7008ZEE4", "Espessura": 0.90, "Largura": 1700, "Peso": 12.64, "Local da Queda": "REB7", "Número Corrida": 474861, "Número Placa": 221, "Cód# Defeito Legado": "1ES", "Motivo": "ESFOLIAMENTO (1ES)", "Cód# Fabric# Previsto": "24", "Grupo de Aço": "3IF-EC180" },
-            { "N° Volume": "1923455", "IDT_BF": "32082714", "BQ": "886044690", "Def_TQ": "C2", "BF_PLTCM": "32011659", "BF_CGL": "32011659", "Data Real Evento": "2026-09-04 01:01:19", "Qualidade": "MSCR06", "Espessura": 0.65, "Largura": 1640, "Peso": 1.95, "Local da Queda": "REB7", "Número Corrida": 474336, "Número Placa": 241, "Cód# Defeito Legado": "1GFTQ", "Motivo": "GOTA FRIA TRINCA DE QUINA (1GFTQ)", "Cód# Fabric# Previsto": "24", "Grupo de Aço": "3IF-EC160" },
-            { "N° Volume": "1926943", "IDT_BF": "P1915500", "BQ": "886044691", "Def_TQ": "1ESPF", "BF_PLTCM": "32037651", "BF_CGL": "X", "Data Real Evento": "2026-09-04 16:41:27", "Qualidade": "NBR6658GF50", "Espessura": 0.50, "Largura": 1290, "Peso": 17.16, "Local da Queda": "REB3", "Número Corrida": 573593, "Número Placa": 271, "Cód# Defeito Legado": "1ESPF", "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "Cód# Fabric# Previsto": "AA", "Grupo de Aço": "2AA-QC5065" },
-            { "N° Volume": "1929970", "IDT_BF": "32050060", "BQ": "886044692", "Def_TQ": "1ESPF", "BF_PLTCM": "32050060", "BF_CGL": "32050060", "Data Real Evento": "2026-09-05 07:54:12", "Qualidade": "EMS1508EEPPC", "Espessura": 0.70, "Largura": 1400, "Peso": 9.67, "Local da Queda": "REB7", "Número Corrida": 577059, "Número Placa": 291, "Cód# Defeito Legado": "1ESPF", "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "Cód# Fabric# Previsto": "MB", "Grupo de Aço": "3IF-PC200" },
-            { "N° Volume": "1930110", "IDT_BF": "32050060", "BQ": "886044693", "Def_TQ": "1ESPF", "BF_PLTCM": "32050060", "BF_CGL": "32050060", "Data Real Evento": "2026-09-05 07:55:43", "Qualidade": "EMS1508EEPPC", "Espessura": 0.70, "Largura": 1400, "Peso": 6.60, "Local da Queda": "REB7", "Número Corrida": 577059, "Número Placa": 291, "Cód# Defeito Legado": "1ESPF", "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "Cód# Fabric# Previsto": "MB", "Grupo de Aço": "3IF-PC200" },
-            { "N° Volume": "1957970", "IDT_BF": "P1900859", "BQ": "886044694", "Def_TQ": "B9", "BF_PLTCM": "31992392", "BF_CGL": "X", "Data Real Evento": "2026-09-10 08:56:44", "Qualidade": "JSC590R", "Espessura": 1.80, "Largura": 1100, "Peso": 2.42, "Local da Queda": "REB6", "Número Corrida": 272118, "Número Placa": 261, "Cód# Defeito Legado": "1GF", "Motivo": "GOTA FRIA (1GF)", "Cód# Fabric# Previsto": "81", "Grupo de Aço": "2AS-HSLA410" },
-            { "N° Volume": "1980923", "IDT_BF": "32204353", "BQ": "886044695", "Def_TQ": "1ESPF", "BF_PLTCM": "32204353", "BF_CGL": "32204353", "Data Real Evento": "2026-09-14 15:08:53", "Qualidade": "DX57D+Z", "Espessura": 0.65, "Largura": 1406, "Peso": 17.10, "Local da Queda": "REB8", "Número Corrida": 577757, "Número Placa": 221, "Cód# Defeito Legado": "1ESPF", "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "Cód# Fabric# Previsto": "24", "Grupo de Aço": "6IF-EC160" },
-            { "N° Volume": "1982049", "IDT_BF": "32204629", "BQ": "886044696", "Def_TQ": "7MC", "BF_PLTCM": "32204629", "BF_CGL": "32204629", "Data Real Evento": "2026-09-14 20:25:31", "Qualidade": "RNESCR4", "Espessura": 0.64, "Largura": 1258, "Peso": 2.70, "Local da Queda": "REB5", "Número Corrida": 577602, "Número Placa": 221, "Cód# Defeito Legado": "1ESPF", "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)", "Cód# Fabric# Previsto": "24", "Grupo de Aço": "6IF-EC180" },
-            { "N° Volume": "32186656", "IDT_BF": "32186656", "BQ": "886044697", "Def_TQ": "C3", "BF_PLTCM": "32158356", "BF_CGL": "X", "Data Real Evento": "2026-09-10 17:01:35", "Qualidade": "IFC280Y380T", "Espessura": 0.70, "Largura": 1420, "Peso": 2.66, "Local da Queda": "PLTCM", "Número Corrida": 474651, "Número Placa": 261, "Cód# Defeito Legado": "1BL", "Motivo": "BOLSA (1BL)", "Cód# Fabric# Previsto": "HL", "Grupo de Aço": "3IN-HSS300" }
+            {
+                "N° Volume": "887197326",
+                "IDT_BF": "P8871973",
+                "BQ": "886044703",
+                "Def_TQ": "1ES",
+                "BF_PLTCM": "32187197",
+                "BF_CGL": "32187197",
+                "Data Real Evento": "2026-09-15 08:20:00",
+                "Qualidade": "ESTQQCTR",
+                "Espessura": 2.0,
+                "Largura": 1271,
+                "Peso": 13.66,
+                "Local da Queda": "LTQ",
+                "Número Corrida": 473802,
+                "Número Placa": 2301,
+                "Cód# Defeito Legado": "1ES",
+                "Motivo": "ESFOLIAMENTO (1ES)",
+                "Cód# Fabric# Previsto": "DY",
+                "Grupo de Aço": "4AS-ESTQQCTR",
+                "Escarfada": "Sim",
+                "Def_Face_A": "EI",
+                "Def_Face_B": "BH",
+                "Vel_Face_A": "12.0",
+                "Vel_Face_B": "12.0",
+                "Anomalias": [
+                    { "cod": "11", "descr": "PLACÃO DE BASE (INÍCIO) DA CORRIDA (POR VEIO)" },
+                    { "cod": "15", "descr": "PLACAS COM AJUSTE DE MOLDE (AM)" },
+                    { "cod": "9", "descr": "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 13,1 A 18 TON" },
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" },
+                    { "cod": "17", "descr": "PLACÃO COM VARIAÇÃO DE LARGURA" }
+                ]
+            },
+            {
+                "N° Volume": "1982049",
+                "IDT_BF": "32204629",
+                "BQ": "886044696",
+                "Def_TQ": "7MC",
+                "BF_PLTCM": "32204629",
+                "BF_CGL": "32204629",
+                "Data Real Evento": "2026-09-14 20:25:31",
+                "Qualidade": "RNESCR4",
+                "Espessura": 0.64,
+                "Largura": 1258,
+                "Peso": 2.7,
+                "Local da Queda": "REB5",
+                "Número Corrida": 577602,
+                "Número Placa": 2201,
+                "Cód# Defeito Legado": "1ESPF",
+                "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)",
+                "Cód# Fabric# Previsto": "24",
+                "Grupo de Aço": "6IF-EC180",
+                "Escarfada": "Não",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "-",
+                "Vel_Face_B": "-",
+                "Anomalias": []
+            },
+            {
+                "N° Volume": "1980923",
+                "IDT_BF": "32204353",
+                "BQ": "886044695",
+                "Def_TQ": "1ESPF",
+                "BF_PLTCM": "32204353",
+                "BF_CGL": "32204353",
+                "Data Real Evento": "2026-09-14 15:08:53",
+                "Qualidade": "DX57D+Z",
+                "Espessura": 0.65,
+                "Largura": 1406,
+                "Peso": 17.1,
+                "Local da Queda": "REB8",
+                "Número Corrida": 577757,
+                "Número Placa": 2201,
+                "Cód# Defeito Legado": "1ESPF",
+                "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)",
+                "Cód# Fabric# Previsto": "24",
+                "Grupo de Aço": "6IF-EC160",
+                "Escarfada": "Sim",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "8.0",
+                "Vel_Face_B": "8.0",
+                "Anomalias": [
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" }
+                ]
+            },
+            {
+                "N° Volume": "1671689",
+                "IDT_BF": "P1480990",
+                "BQ": "886044687",
+                "Def_TQ": "7MC",
+                "BF_PLTCM": "30786377",
+                "BF_CGL": "30794840",
+                "Data Real Evento": "2026-09-14 09:57:33",
+                "Qualidade": "GMW2MSTSCR4",
+                "Espessura": 0.65,
+                "Largura": 1560,
+                "Peso": 4.9,
+                "Local da Queda": "REB3",
+                "Número Corrida": 473104,
+                "Número Placa": 2201,
+                "Cód# Defeito Legado": "1FP",
+                "Motivo": "FALTA DE PESO (1FP)",
+                "Cód# Fabric# Previsto": "24",
+                "Grupo de Aço": "3IF-EC180",
+                "Escarfada": "Sim",
+                "Def_Face_A": "EI",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "12.0",
+                "Vel_Face_B": "12.0",
+                "Anomalias": [
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" }
+                ]
+            },
+            {
+                "N° Volume": "1890260",
+                "IDT_BF": "P1890260",
+                "BQ": "886044699",
+                "Def_TQ": "1FP",
+                "BF_PLTCM": "31890260",
+                "BF_CGL": "31890260",
+                "Data Real Evento": "2026-09-12 11:15:30",
+                "Qualidade": "UG0813",
+                "Espessura": 4.5,
+                "Largura": 1250,
+                "Peso": 1.75,
+                "Local da Queda": "DEC3",
+                "Número Corrida": 474827,
+                "Número Placa": 2201,
+                "Cód# Defeito Legado": "1FP",
+                "Motivo": "FALTA DE PESO (1FP)",
+                "Cód# Fabric# Previsto": "DD",
+                "Grupo de Aço": "4AA-UG0813",
+                "Escarfada": "Não",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "-",
+                "Vel_Face_B": "-",
+                "Anomalias": [
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" }
+                ]
+            },
+            {
+                "N° Volume": "1885250",
+                "IDT_BF": "P1885250",
+                "BQ": "886044698",
+                "Def_TQ": "1GF",
+                "BF_PLTCM": "31852500",
+                "BF_CGL": "31852500",
+                "Data Real Evento": "2026-09-11 14:20:10",
+                "Qualidade": "UG0813",
+                "Espessura": 4.5,
+                "Largura": 1250,
+                "Peso": 14.85,
+                "Local da Queda": "DEC3",
+                "Número Corrida": 577458,
+                "Número Placa": 2901,
+                "Cód# Defeito Legado": "1GF",
+                "Motivo": "GOTA FRIA (1GF)",
+                "Cód# Fabric# Previsto": "DD",
+                "Grupo de Aço": "4AA-UG0813",
+                "Escarfada": "Sim",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "10.0",
+                "Vel_Face_B": "10.0",
+                "Anomalias": [
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" }
+                ]
+            },
+            {
+                "N° Volume": "32186656",
+                "IDT_BF": "32186656",
+                "BQ": "886044697",
+                "Def_TQ": "C3",
+                "BF_PLTCM": "32158356",
+                "BF_CGL": "X",
+                "Data Real Evento": "2026-09-10 17:01:35",
+                "Qualidade": "IFC280Y380T",
+                "Espessura": 0.7,
+                "Largura": 1420,
+                "Peso": 2.66,
+                "Local da Queda": "PLTCM",
+                "Número Corrida": 474651,
+                "Número Placa": 2601,
+                "Cód# Defeito Legado": "1BL",
+                "Motivo": "BOLSA (1BL)",
+                "Cód# Fabric# Previsto": "HL",
+                "Grupo de Aço": "3IN-HSS300",
+                "Escarfada": "Não",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "-",
+                "Vel_Face_B": "-",
+                "Anomalias": [
+                    { "cod": "41", "descr": "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN" },
+                    { "cod": "42", "descr": "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON" },
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" },
+                    { "cod": "12", "descr": "PLACÃO DE TOPO (FIM) DA CORRIDA (POR VEIO)" }
+                ]
+            },
+            {
+                "N° Volume": "1957970",
+                "IDT_BF": "P1900859",
+                "BQ": "886044694",
+                "Def_TQ": "B9",
+                "BF_PLTCM": "31992392",
+                "BF_CGL": "X",
+                "Data Real Evento": "2026-09-10 08:56:44",
+                "Qualidade": "JSC590R",
+                "Espessura": 1.8,
+                "Largura": 1100,
+                "Peso": 2.42,
+                "Local da Queda": "REB6",
+                "Número Corrida": 272118,
+                "Número Placa": 2601,
+                "Cód# Defeito Legado": "1GF",
+                "Motivo": "GOTA FRIA (1GF)",
+                "Cód# Fabric# Previsto": "81",
+                "Grupo de Aço": "2AS-HSLA410",
+                "Escarfada": "Sim",
+                "Def_Face_A": "TT",
+                "Def_Face_B": "GP",
+                "Vel_Face_A": "-",
+                "Vel_Face_B": "-",
+                "Anomalias": [
+                    { "cod": "12", "descr": "PLACÃO DE TOPO (FIM) DA CORRIDA (POR VEIO)" },
+                    { "cod": "24", "descr": "PLACA DE FINAL DE DISTRIBUIDOR (FD)" }
+                ]
+            },
+            {
+                "N° Volume": "1395470",
+                "IDT_BF": "P1368770",
+                "BQ": "886044686",
+                "Def_TQ": "7MC",
+                "BF_PLTCM": "30558320",
+                "BF_CGL": "30558320",
+                "Data Real Evento": "2026-09-09 16:10:47",
+                "Qualidade": "FG52806FEP05",
+                "Espessura": 0.7,
+                "Largura": 1450,
+                "Peso": 2.98,
+                "Local da Queda": "REB3",
+                "Número Corrida": 472727,
+                "Número Placa": 2701,
+                "Cód# Defeito Legado": "1FP",
+                "Motivo": "FALTA DE PESO (1FP)",
+                "Cód# Fabric# Previsto": "24",
+                "Grupo de Aço": "3IF-EC180",
+                "Escarfada": "Sim",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "8.0",
+                "Vel_Face_B": "8.0",
+                "Anomalias": [
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" },
+                    { "cod": "7", "descr": "PLACAS LINGOTADAS SEM USO DE SCAN" },
+                    { "cod": "67", "descr": "PRIMEIRA PLACA POSTERIOR A PLACA COM REDUCAO DE VELOCIDADE (41)" },
+                    { "cod": "11", "descr": "PLACÃO DE BASE (INÍCIO) DA CORRIDA (POR VEIO)" }
+                ]
+            },
+            {
+                "N° Volume": "1930667",
+                "IDT_BF": "P1930667",
+                "BQ": "886044700",
+                "Def_TQ": "1GF",
+                "BF_PLTCM": "32030667",
+                "BF_CGL": "32030667",
+                "Data Real Evento": "2026-09-06 09:30:00",
+                "Qualidade": "HE480",
+                "Espessura": 2.5,
+                "Largura": 1200,
+                "Peso": 14.07,
+                "Local da Queda": "DEC3",
+                "Número Corrida": 577557,
+                "Número Placa": 2701,
+                "Cód# Defeito Legado": "1GF",
+                "Motivo": "GOTA FRIA (1GF)",
+                "Cód# Fabric# Previsto": "UZ",
+                "Grupo de Aço": "4AA-HE480",
+                "Escarfada": "Não",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "-",
+                "Vel_Face_B": "-",
+                "Anomalias": []
+            },
+            {
+                "N° Volume": "1930110",
+                "IDT_BF": "32050060",
+                "BQ": "886044693",
+                "Def_TQ": "1ESPF",
+                "BF_PLTCM": "32050060",
+                "BF_CGL": "32050060",
+                "Data Real Evento": "2026-09-05 07:55:43",
+                "Qualidade": "EMS1508EEPPC",
+                "Espessura": 0.7,
+                "Largura": 1400,
+                "Peso": 6.6,
+                "Local da Queda": "REB7",
+                "Número Corrida": 577059,
+                "Número Placa": 2901,
+                "Cód# Defeito Legado": "1ESPF",
+                "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)",
+                "Cód# Fabric# Previsto": "MB",
+                "Grupo de Aço": "3IF-PC200",
+                "Escarfada": "Sim",
+                "Def_Face_A": "BH",
+                "Def_Face_B": "BH",
+                "Vel_Face_A": "8.0",
+                "Vel_Face_B": "8.0",
+                "Anomalias": [
+                    { "cod": "16", "descr": "PLACAS COM REDUÇÃO VELOLCIDADE 0.4 a 0.6 M/MIN EM MAIS DE 10% DO COMPRIMENTO" },
+                    { "cod": "29", "descr": "TERCEIRO PLACÃO DA PRIMEIRA CORRIDA DO DISTRIBUIDOR (POR VEIO)" },
+                    { "cod": "68", "descr": "PRIMEIRA PLACA POSTERIOR À PLACA LINGOTADA SEM VÁLVULA LONGA (22)" }
+                ]
+            },
+            {
+                "N° Volume": "1929970",
+                "IDT_BF": "32050060",
+                "BQ": "886044692",
+                "Def_TQ": "1ESPF",
+                "BF_PLTCM": "32050060",
+                "BF_CGL": "32050060",
+                "Data Real Evento": "2026-09-05 07:54:12",
+                "Qualidade": "EMS1508EEPPC",
+                "Espessura": 0.7,
+                "Largura": 1400,
+                "Peso": 9.67,
+                "Local da Queda": "REB7",
+                "Número Corrida": 577059,
+                "Número Placa": 2901,
+                "Cód# Defeito Legado": "1ESPF",
+                "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)",
+                "Cód# Fabric# Previsto": "MB",
+                "Grupo de Aço": "3IF-PC200",
+                "Escarfada": "Sim",
+                "Def_Face_A": "BH",
+                "Def_Face_B": "BH",
+                "Vel_Face_A": "8.0",
+                "Vel_Face_B": "8.0",
+                "Anomalias": [
+                    { "cod": "16", "descr": "PLACAS COM REDUÇÃO VELOLCIDADE 0.4 a 0.6 M/MIN EM MAIS DE 10% DO COMPRIMENTO" },
+                    { "cod": "29", "descr": "TERCEIRO PLACÃO DA PRIMEIRA CORRIDA DO DISTRIBUIDOR (POR VEIO)" },
+                    { "cod": "68", "descr": "PRIMEIRA PLACA POSTERIOR À PLACA LINGOTADA SEM VÁLVULA LONGA (22)" }
+                ]
+            },
+            {
+                "N° Volume": "1926943",
+                "IDT_BF": "P1915500",
+                "BQ": "886044691",
+                "Def_TQ": "1ESPF",
+                "BF_PLTCM": "32037651",
+                "BF_CGL": "X",
+                "Data Real Evento": "2026-09-04 16:41:27",
+                "Qualidade": "NBR6658GF50",
+                "Espessura": 0.5,
+                "Largura": 1290,
+                "Peso": 17.16,
+                "Local da Queda": "REB3",
+                "Número Corrida": 573593,
+                "Número Placa": 2701,
+                "Cód# Defeito Legado": "1ESPF",
+                "Motivo": "ESFOLIAMENTO PÓ FLUXANTE (1ESPF)",
+                "Cód# Fabric# Previsto": "AA",
+                "Grupo de Aço": "2AA-QC5065",
+                "Escarfada": "Sim",
+                "Def_Face_A": "EI",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "12.0",
+                "Vel_Face_B": "12.0",
+                "Anomalias": [
+                    { "cod": "7", "descr": "PLACAS LINGOTADAS SEM USO DE SCAN" }
+                ]
+            },
+            {
+                "N° Volume": "1923455",
+                "IDT_BF": "32082714",
+                "BQ": "886044690",
+                "Def_TQ": "C2",
+                "BF_PLTCM": "32011659",
+                "BF_CGL": "32011659",
+                "Data Real Evento": "2026-09-04 01:01:19",
+                "Qualidade": "MSCR06",
+                "Espessura": 0.65,
+                "Largura": 1640,
+                "Peso": 1.95,
+                "Local da Queda": "REB7",
+                "Número Corrida": 474336,
+                "Número Placa": 2401,
+                "Cód# Defeito Legado": "1GFTQ",
+                "Motivo": "GOTA FRIA TRINCA DE QUINA (1GFTQ)",
+                "Cód# Fabric# Previsto": "24",
+                "Grupo de Aço": "3IF-EC160",
+                "Escarfada": "Não",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "-",
+                "Vel_Face_B": "-",
+                "Anomalias": [
+                    { "cod": "4", "descr": "PLACAS COM BATIDA DE TAMPÃO" },
+                    { "cod": "65", "descr": "PRIMEIRA PLACA POSTERIOR A PLACA COM TROCA DE VALVULA SUMERSA (02)(10)" },
+                    { "cod": "63", "descr": "PRIMEIRA PLACA POSTERIOR A PLACA COM BATIDA DE TAMPAO (04)" },
+                    { "cod": "41", "descr": "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN" }
+                ]
+            },
+            {
+                "N° Volume": "1794604",
+                "IDT_BF": "P1781725",
+                "BQ": "886044688",
+                "Def_TQ": "10",
+                "BF_PLTCM": "31615802",
+                "BF_CGL": "31615802",
+                "Data Real Evento": "2026-09-03 16:33:38",
+                "Qualidade": "NBRZAR230",
+                "Espessura": 1.11,
+                "Largura": 1200,
+                "Peso": 4.37,
+                "Local da Queda": "REB7",
+                "Número Corrida": 474312,
+                "Número Placa": 2501,
+                "Cód# Defeito Legado": "1FP",
+                "Motivo": "FALTA DE PESO (1FP)",
+                "Cód# Fabric# Previsto": "AA",
+                "Grupo de Aço": "3AA-HSS230",
+                "Escarfada": "Sim",
+                "Def_Face_A": "ER",
+                "Def_Face_B": "TQ",
+                "Vel_Face_A": "8.0",
+                "Vel_Face_B": "8.0",
+                "Anomalias": [
+                    { "cod": "12", "descr": "PLACÃO DE TOPO (FIM) DA CORRIDA (POR VEIO)" },
+                    { "cod": "10", "descr": "TROCA VALVULA SUBMERSA COM VELOCIDADE >= 0.7 M/MIN" },
+                    { "cod": "4", "descr": "PLACAS COM BATIDA DE TAMPÃO" },
+                    { "cod": "7", "descr": "PLACAS LINGOTADAS SEM USO DE SCAN" },
+                    { "cod": "9", "descr": "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 13,1 A 18 TON" },
+                    { "cod": "41", "descr": "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN" },
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" }
+                ]
+            },
+            {
+                "N° Volume": "1918330",
+                "IDT_BF": "32065164",
+                "BQ": "886044689",
+                "Def_TQ": "27",
+                "BF_PLTCM": "31986914",
+                "BF_CGL": "31986914",
+                "Data Real Evento": "2026-09-03 01:39:05",
+                "Qualidade": "NBR7008ZEE4",
+                "Espessura": 0.9,
+                "Largura": 1700,
+                "Peso": 12.64,
+                "Local da Queda": "REB7",
+                "Número Corrida": 474861,
+                "Número Placa": 2201,
+                "Cód# Defeito Legado": "1ES",
+                "Motivo": "ESFOLIAMENTO (1ES)",
+                "Cód# Fabric# Previsto": "24",
+                "Grupo de Aço": "3IF-EC180",
+                "Escarfada": "Sim",
+                "Def_Face_A": "Nenhum",
+                "Def_Face_B": "Nenhum",
+                "Vel_Face_A": "8.0",
+                "Vel_Face_B": "12.0",
+                "Anomalias": [
+                    { "cod": "28", "descr": "SEGUNDO PLACÃO DA PRIMEIRA CORRIDA DO DISTRIBUIDOR (POR VEIO)" },
+                    { "cod": "42", "descr": "PLACAS COM NÍVEL DE AÇO NO DISTRIBUIDOR DE 18,1 A 23,9 TON" },
+                    { "cod": "41", "descr": "PLACAS LINGOTADAS COM VELOCIDADE ENTRE 0,66 A 0,79 M/MIN" },
+                    { "cod": "14", "descr": "PLACA DE EMENDA DE CORRIDA" }
+                ]
+            }
         ];
 
         let chartDefeitoInst = null;
@@ -346,21 +811,38 @@
         let chartLinhaInst = null;
 
         function inicializarDashboard() {
+            ordenarDadosPorData();
             popularSelect();
             renderizarGraficos();
             mudarRegistro();
         }
 
+        // ORDENAÇÃO CRONOLÓGICA DECRESCENTE
+        function ordenarDadosPorData() {
+            dadosPadraoIniciais.sort((a, b) => {
+                let dataA = new Date(a['Data Real Evento']);
+                let dataB = new Date(b['Data Real Evento']);
+                return dataB - dataA;
+            });
+        }
+
         function popularSelect() {
             let select = document.getElementById('selectRegistro');
             select.innerHTML = '';
+            
             dadosPadraoIniciais.forEach((item, index) => {
                 let opt = document.createElement('option');
                 opt.value = index;
-                opt.textContent = `Mat: ${item['N° Volume']} | BF: ${item['IDT_BF']} | BQ: ${item['BQ']} | Def: ${item['Cód# Defeito Legado']} | TQ: ${item['Def_TQ']}`;
+                
+                let d = new Date(item['Data Real Evento']);
+                let dataFormatada = !isNaN(d) 
+                    ? d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+                    : item['Data Real Evento'];
+
+                opt.textContent = `[${dataFormatada}] | Mat: ${item['N° Volume']} | Def: ${item['Cód# Defeito Legado']} | Corr: ${item['Número Corrida']} | Placa: ${item['Número Placa']}`;
                 select.appendChild(opt);
             });
-            document.getElementById('badgeContagem').textContent = `${dadosPadraoIniciais.length} ocorrências oficiais carregadas.`;
+            document.getElementById('badgeContagem').textContent = `${dadosPadraoIniciais.length} ocorrências oficiais carregadas (sem 1CQ).`;
         }
 
         function renderizarGraficos() {
@@ -463,6 +945,14 @@
             let localQueda = item['Local da Queda'] || '-';
             let dataEvento = item['Data Real Evento'] || '-';
             let grupoAco = item['Grupo de Aço'] || '-';
+            let anoms = item['Anomalias'] || [];
+
+            // Dados Reais de Escarfagem
+            let escarfada = item['Escarfada'] || 'Não';
+            let velA = item['Vel_Face_A'] || '-';
+            let velB = item['Vel_Face_B'] || '-';
+            let defA = item['Def_Face_A'] || 'Nenhum';
+            let defB = item['Def_Face_B'] || 'Nenhum';
 
             document.getElementById('viewDefeito').textContent = def;
             document.getElementById('viewPlacaCabeca').textContent = `Placa: ${placa}`;
@@ -483,16 +973,49 @@
             document.getElementById('viewLocalQueda').textContent = localQueda;
             document.getElementById('viewPeso').textContent = `${peso} t`;
 
-            document.getElementById('viewAnomalia').textContent = `BF Mãe (${idtBf}) gerou BQ ${bq} | Defeito TQ: ${defTq}`;
-            document.getElementById('viewEscSimNao').textContent = 'Não';
-            document.getElementById('viewVelFace').textContent = '12.0 m/min';
-            document.getElementById('viewDefFaceA').textContent = 'Nenhum';
-            document.getElementById('viewDefFaceB').textContent = 'Nenhum';
+            // RENDERIZAÇÃO DAS ANORMALIDADES NO ISHIKAWA
+            let containerAnom = document.getElementById('viewAnomaliasContainer');
+            if (!anoms || anoms.length === 0) {
+                containerAnom.innerHTML = `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-[11px] text-slate-500 font-semibold italic text-center">
+                        Nenhuma anormalidade operacional registrada
+                    </div>
+                `;
+            } else {
+                let htmlAnoms = anoms.map(a => `
+                    <div class="bg-rose-50/60 border border-rose-200/80 rounded-xl p-2 text-[10px] text-rose-700 leading-tight flex items-start gap-1.5">
+                        <span class="bg-rose-600 text-white font-mono font-bold px-1.5 py-0.5 rounded text-[9px] shrink-0">[${a.cod}]</span>
+                        <span class="font-semibold">${a.descr}</span>
+                    </div>
+                `).join('');
+                containerAnom.innerHTML = htmlAnoms;
+            }
+
+            // ATUALIZAÇÃO DO BLOCO DE ESCARFAGEM
+            let elEscSimNao = document.getElementById('viewEscSimNao');
+            elEscSimNao.textContent = escarfada;
+            elEscSimNao.className = (escarfada === 'Sim') ? 'font-bold text-emerald-600' : 'font-bold text-slate-800';
+
+            let velTexto = (velA !== '-' || velB !== '-') ? `${velA} / ${velB} m/min` : 'N/A';
+            document.getElementById('viewVelFace').textContent = velTexto;
+            document.getElementById('viewDefFaceA').textContent = defA;
+            document.getElementById('viewDefFaceB').textContent = defB;
+
+            // Relatório Narrativo Dinâmico
+            let descricoesAnomTexto = (anoms && anoms.length > 0)
+                ? `<br><span class="text-rose-600 font-bold">Anormalidades Operacionais no Lingotamento:</span> ${anoms.map(a => `[Cód ${a.cod}]${a.descr}`).join('; ')}.`
+                : '<br><span class="text-slate-500">Sem anormalidades registradas na etapa de lingotamento.</span>';
+
+            let descrEscarfagemTexto = (escarfada === 'Sim')
+                ? `<br><span class="text-emerald-700 font-bold">Parâmetros de Escarfagem:</span> Placa escarfada (Velocidade A/B: ${velTexto}, Defeitos: Face A [${defA}] / Face B [${defB}]).`
+                : '<br><span class="text-slate-500">Placa sem intervenção de escarfagem.</span>';
 
             document.getElementById('relatorioTexto').innerHTML = `
                 Análise da ocorrência para a bobina <strong>${volume}</strong> (BF Mãe: <strong>${idtBf}</strong>, BQ: <strong>${bq}</strong>, Corrida: <strong>${corrida}</strong>, Placa: <strong>${placa}</strong>): 
                 O material da qualidade <strong>${qualidade}</strong> (${grupoAco}), lançado na Tiras a Quente com o defeito <strong>${defTq}</strong>, 
                 apresentou a queda por <strong>${def}</strong> (${motivo}) no setor <strong>${localQueda}</strong> em ${dataEvento} com peso de ${peso} t.
+                ${descrEscarfagemTexto}
+                ${descricoesAnomTexto}
             `;
 
             popularTabelasSequencia(idx);
@@ -502,7 +1025,6 @@
             let tbodyPltcm = document.getElementById('tabelaPltcmCorpo');
             let tbodyCgl = document.getElementById('tabelaCglCorpo');
             
-            // Garante anterior mesmo se for o primeiro item (usando o próprio item ou um placeholder de apoio)
             let prev = dadosPadraoIniciais[Number(currentIndex) - 1] || dadosPadraoIniciais[Number(currentIndex)];
             let curr = dadosPadraoIniciais[Number(currentIndex)];
             let next = dadosPadraoIniciais[Number(currentIndex) + 1] || dadosPadraoIniciais[Number(currentIndex)];
@@ -590,6 +1112,7 @@
             tbodyCgl.innerHTML = htmlCgl;
         }
 
+        // Processamento de novos ficheiros Excel com leitura dinâmica de escarfagem
         function processarExcel(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -602,30 +1125,69 @@
                 let json = XLSX.utils.sheet_to_json(worksheet);
                 
                 if (json.length > 0) {
-                    dadosPadraoIniciais = json.map(row => ({
-                        'N° Volume': String(row['N° Volume'] || ''),
-                        'IDT_BF': String(row['IDT_BF'] || ''),
-                        'BQ': String(row['BQ'] || row['IDT_BQ'] || '886044600'),
-                        'Def_TQ': String(row['Def_TQ'] || row['COD_DEFEITO'] || '7MC'),
-                        'BF_PLTCM': String(row['BF_PLTCM'] || 'X'),
-                        'BF_CGL': String(row['BF_CGL'] || 'X'),
-                        'Data Real Evento': String(row['Data Real Evento'] || ''),
-                        'Qualidade': String(row['Qualidade'] || ''),
-                        'Espessura': Number(row['Espessura'] || 0),
-                        'Largura': Number(row['Largura'] || 0),
-                        'Peso': Number(row['Peso'] || 0),
-                        'Local da Queda': String(row['Local da Queda'] || ''),
-                        'Número Corrida': Number(row['Número Corrida'] || 0),
-                        'Número Placa': Number(row['Número Placa'] || 0),
-                        'Cód# Defeito Legado': String(row['Cód# Defeito Legado'] || '1BL'),
-                        'Motivo': String(row['Motivo'] || ''),
-                        'Cód# Fabric# Previsto': String(row['Cód# Fabric# Previsto'] || ''),
-                        'Grupo de Aço': String(row['Grupo de Aço'] || '')
-                    }));
+                    let volumeMap = new Map();
+
+                    json.forEach(row => {
+                        let defLegado = String(row['Cód# Defeito Legado'] || row['DEFEITO'] || '').trim().toUpperCase();
+                        
+                        if (defLegado === '1CQ') return;
+
+                        let vol = String(row['N° Volume'] || row['VOLUME'] || '');
+                        if (!vol) return;
+
+                        let codAnom = row['COD_ANORM_OPERAC_PLC'] || row['COD_ANORMALIDADE'] || row['Cod_Anormalidade'] || '';
+                        let descAnom = row['DESCR_ANORM_OPERAC_PLC'] || row['DESC_ANORMALIDADE'] || row['Desc_Anormalidade'] || '';
+
+                        let defA = String(row['COD_DEF_SUPF_PL_ESCF_FACE_A'] || '').trim() || 'Nenhum';
+                        let defB = String(row['COD_DEF_SUPF_PL_ESCF_FACE_B'] || '').trim() || 'Nenhum';
+                        let velA = (row['VEL_ESCARF_FACE_A'] !== undefined && row['VEL_ESCARF_FACE_A'] !== null && String(row['VEL_ESCARF_FACE_A']).trim() !== '') ? Number(row['VEL_ESCARF_FACE_A']).toFixed(1) : '-';
+                        let velB = (row['VEL_ESCARF_FACE_B'] !== undefined && row['VEL_ESCARF_FACE_B'] !== null && String(row['VEL_ESCARF_FACE_B']).trim() !== '') ? Number(row['VEL_ESCARF_FACE_B']).toFixed(1) : '-';
+
+                        let escarfada = (velA !== '-' || velB !== '-' || defA !== 'Nenhum' || defB !== 'Nenhum') ? 'Sim' : 'Não';
+
+                        if (!volumeMap.has(vol)) {
+                            volumeMap.set(vol, {
+                                'N° Volume': vol,
+                                'IDT_BF': String(row['IDT_BF'] || row['BF'] || `P${vol.slice(0, 7)}`),
+                                'BQ': String(row['BQ'] || row['IDT_BQ'] || '886044700'),
+                                'Def_TQ': String(row['Def_TQ'] || row['COD_DEFEITO'] || defLegado || '-'),
+                                'BF_PLTCM': String(row['BF_PLTCM'] || 'X'),
+                                'BF_CGL': String(row['BF_CGL'] || 'X'),
+                                'Data Real Evento': String(row['Data Real Evento'] || row['DATA'] || '2026-09-15 10:00:00'),
+                                'Qualidade': String(row['Qualidade'] || row['QUALIDADE'] || row['Grupo de Aço'] || ''),
+                                'Espessura': Number(row['Espessura'] || 0),
+                                'Largura': Number(row['Largura'] || 0),
+                                'Peso': Number(row['Peso'] || 0),
+                                'Local da Queda': String(row['Local da Queda'] || row['LOCAL'] || ''),
+                                'Número Corrida': Number(row['Número Corrida'] || row['CORRIDA'] || 0),
+                                'Número Placa': Number(row['Número Placa'] || row['PLACA'] || 0),
+                                'Cód# Defeito Legado': defLegado,
+                                'Motivo': String(row['Motivo'] || row['MOTIVO'] || ''),
+                                'Cód# Fabric# Previsto': String(row['Cód# Fabric# Previsto'] || ''),
+                                'Grupo de Aço': String(row['Grupo de Aço'] || ''),
+                                'Escarfada': escarfada,
+                                'Def_Face_A': defA,
+                                'Def_Face_B': defB,
+                                'Vel_Face_A': velA,
+                                'Vel_Face_B': velB,
+                                'Anomalias': []
+                            });
+                        }
+
+                        if (codAnom && descAnom) {
+                            volumeMap.get(vol).Anomalias.push({
+                                cod: String(codAnom),
+                                descr: String(descAnom).trim()
+                            });
+                        }
+                    });
+
+                    dadosPadraoIniciais = Array.from(volumeMap.values());
+                    ordenarDadosPorData();
                     popularSelect();
                     renderizarGraficos();
                     mudarRegistro();
-                    alert(`✅ Planilha processada com sucesso! ${dadosPadraoIniciais.length} registros carregados.`);
+                    alert(`✅ Planilha processada com sucesso! ${dadosPadraoIniciais.length} bobinas carregadas em ordem cronológica decrescente.`);
                 }
             };
             reader.readAsArrayBuffer(file);
