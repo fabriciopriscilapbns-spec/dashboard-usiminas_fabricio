@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Resumo Executivo — Retrabalho UNIGAL</title>
+<title>Resumo— Retrabalho UNIGAL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -833,7 +833,7 @@ function updateCloudStatusUI(info) {
   if (cloudStatus === 'cloud') el.textContent = '☁ dados compartilhados' + (info && info.updatedAt ? ' · atualizados ' + new Date(info.updatedAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '');
   else if (cloudStatus === 'saving') el.textContent = '☁ salvando…';
   else if (cloudStatus === 'error') el.textContent = '⚠ não sincronizou com a nuvem';
-  else el.textContent = '💻 base padrão (não compartilhada)';
+  else el.textContent = '💻 ';
 }
 
 /* tenta conectar ao banco da plataforma; se não houver (ou der erro), segue com a base padrão sem quebrar nada */
