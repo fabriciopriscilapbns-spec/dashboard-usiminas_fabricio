@@ -25,7 +25,7 @@ body {
 }
 .sheet { max-width: 1120px; margin: 0 auto; }
 
-.topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand .mark { width: 11px; height: 11px; border-radius: 3px; background: var(--accent); }
 .brand h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
@@ -61,7 +61,7 @@ body {
 .cloud-status.error { color: var(--alert); }
 
 .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
-.kpi-row-3 { grid-template-columns: repeat(3, 1fr); }
+.kpi-row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .kpi {
   background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px;
   border-top: 3px solid var(--line-strong);
@@ -74,8 +74,8 @@ body {
 .kpi .trend.up { color: var(--alert); } .kpi .trend.down { color: var(--good); } .kpi .trend.flat { color: var(--faint); }
 .kpi .note { font-size: 11px; color: var(--faint); margin-top: 8px; }
 
-.row-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-bottom: 18px; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+.row-2 { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; margin-bottom: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; min-width: 0; }
 .card-title { font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
 .card-title .unit { font-size: 10.5px; color: var(--faint); font-weight: 500; }
 .chart-wrap { position: relative; width: 100%; height: 210px; }
@@ -98,8 +98,8 @@ body {
 }
 .rank-filter-chip b { color: var(--accent-dark); }
 .rank-filter-chip button { background: var(--accent); color: #fff; border: none; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; cursor: pointer; }
-.rank-val { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); flex: none; text-align: right; width: 90px; }
-.rank-pct { font-family: var(--mono); font-size: 10px; color: var(--faint); flex: none; text-align: right; width: 38px; }
+.rank-val { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); flex: none; text-align: right; min-width: 64px; white-space: nowrap; }
+.rank-pct { font-family: var(--mono); font-size: 10px; color: var(--faint); flex: none; text-align: right; width: 34px; }
 
 .footer-note { font-size: 10.5px; color: var(--faint); margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); line-height: 1.6; }
 .footer-note b { color: var(--sub); }
@@ -120,7 +120,7 @@ body {
 .ishi-nav-pos { font-family: var(--mono); font-size: 11.5px; color: var(--sub); }
 .filters-row-exec select {
   background: #FFFFFF; border: 1px solid var(--line-strong); color: var(--ink); font-family: var(--sans);
-  font-size: 12.5px; padding: 9px 12px; border-radius: 7px; outline: none; flex: 1 1 220px;
+  font-size: 12.5px; padding: 9px 12px; border-radius: 7px; outline: none; flex: 1 1 220px; min-width: 0; max-width: 100%; text-overflow: ellipsis;
 }
 .filters-row-exec select:focus { border-color: var(--accent); }
 
@@ -191,9 +191,20 @@ body {
   .sheet { max-width: 100%; }
   .kpi, .card { box-shadow: none; break-inside: avoid; }
 }
+.kpi { min-width: 0; }
+.period-bar { flex-wrap: wrap; gap: 6px 16px; }
 @media (max-width: 820px) {
-  .kpi-row { grid-template-columns: 1fr 1fr; }
-  .row-2 { grid-template-columns: 1fr; }
+  .kpi-row, .kpi-row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .row-2 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  body { padding: 20px 16px 32px; }
+  .kpi-row, .kpi-row-3 { grid-template-columns: minmax(0, 1fr); }
+  .kpi .v { font-size: 24px; }
+  .card { padding: 16px; }
+  .card-title { flex-wrap: wrap; gap: 4px 10px; }
+  .rank-item { gap: 8px; }
+  .rank-val { min-width: 56px; font-size: 11.5px; }
 }
 </style>
 </head>
@@ -830,42 +841,146 @@ function updateCloudStatusUI(info) {
   const el = document.getElementById('cloudStatusTxt');
   if (!el) return;
   el.className = 'cloud-status ' + cloudStatus;
-  if (cloudStatus === 'cloud') el.textContent = '☁ dados compartilhados' + (info && info.updatedAt ? ' · atualizados ' + new Date(info.updatedAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '');
+  if (cloudStatus === 'cloud') el.textContent = '☁ base atualizada' + (info && info.updatedAt ? ' em ' + new Date(info.updatedAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '') + (info && info.fileName ? ' · ' + info.fileName : '');
   else if (cloudStatus === 'saving') el.textContent = '☁ salvando…';
   else if (cloudStatus === 'error') el.textContent = '⚠ não sincronizou com a nuvem';
-  else el.textContent = '💻 ';
+  else if (info && info.updatedAt) {
+    el.innerHTML = '💻 base salva neste navegador em ' + esc(new Date(info.updatedAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})) +
+      (info.fileName ? ' · ' + esc(info.fileName) : '');
+  }
+  else el.textContent = '💻 base padrão';
+}
+
+/* base salva no próprio navegador (IndexedDB): funciona no link e no arquivo baixado,
+   e mantém a última planilha carregada ao fechar e abrir de novo */
+const LOCAL_DB_NAME = 'retrabalho_unigal', LOCAL_STORE = 'base', LOCAL_KEY = 'atual';
+function openLocalDb() {
+  return new Promise((resolve, reject) => {
+    try {
+      const req = indexedDB.open(LOCAL_DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(LOCAL_STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    } catch (e) { reject(e); }
+  });
+}
+async function saveLocalBase(rows, fileName) {
+  try {
+    const dbl = await openLocalDb();
+    const meta = { updatedAt: new Date().toISOString(), fileName: fileName || '' };
+    await new Promise((resolve, reject) => {
+      const tx = dbl.transaction(LOCAL_STORE, 'readwrite');
+      tx.objectStore(LOCAL_STORE).put({ rows, meta }, LOCAL_KEY);
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+    });
+    return meta;
+  } catch (e) { return null; }
+}
+async function loadLocalBase() {
+  try {
+    const dbl = await openLocalDb();
+    const v = await new Promise((resolve, reject) => {
+      const req = dbl.transaction(LOCAL_STORE, 'readonly').objectStore(LOCAL_STORE).get(LOCAL_KEY);
+      req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error);
+    });
+    return (v && Array.isArray(v.rows) && v.rows.length) ? v : null;
+  } catch (e) { return null; }
+}
+async function clearLocalBase() {
+  try {
+    const dbl = await openLocalDb();
+    await new Promise((resolve) => { const tx = dbl.transaction(LOCAL_STORE, 'readwrite'); tx.objectStore(LOCAL_STORE).delete(LOCAL_KEY); tx.oncomplete = resolve; tx.onerror = resolve; });
+  } catch (e) {}
+}
+
+/* base na nuvem dividida em partes: cada registro do banco aceita ~256 KB, então a planilha
+   vai em blocos (rawChunks/c000, c001…) e o índice (data/rawMeta) é gravado por último —
+   assim uma gravação interrompida nunca deixa a base pela metade. */
+const CHUNK_MAX_CHARS = 180000;
+function splitRows(rows) {
+  const chunks = []; let cur = []; let size = 2;
+  rows.forEach(r => {
+    const len = JSON.stringify(r).length + 1;
+    if (cur.length && size + len > CHUNK_MAX_CHARS) { chunks.push(cur); cur = []; size = 2; }
+    cur.push(r); size += len;
+  });
+  if (cur.length) chunks.push(cur);
+  return chunks;
+}
+async function saveCloudBase(rows, fileName) {
+  const prevSnap = await dbRef.doc('data/rawMeta').get();
+  const prevCount = prevSnap.exists && prevSnap.data() ? (prevSnap.data().chunks || 0) : 0;
+  const version = Date.now().toString(36);
+  const chunks = splitRows(rows);
+  for (let i = 0; i < chunks.length; i++) {
+    await dbRef.collection('rawChunks').doc(version + '_' + String(i).padStart(3,'0')).set({ rows: chunks[i] });
+  }
+  const updatedAt = new Date().toISOString();
+  await dbRef.doc('data/rawMeta').set({ version, chunks: chunks.length, total: rows.length, updatedAt, fileName: fileName || '' });
+  /* limpa as partes da versão anterior e o formato antigo (registro único) */
+  try {
+    const old = await dbRef.collection('rawChunks').get();
+    for (const d of old.docs) { if (!d.id.startsWith(version + '_')) await dbRef.collection('rawChunks').doc(d.id).delete(); }
+    const legacy = await dbRef.doc('data/rawRows').get();
+    if (legacy.exists) await dbRef.doc('data/rawRows').delete();
+  } catch (e) { /* limpeza é opcional */ }
+  return { updatedAt };
+}
+async function loadCloudBase() {
+  const metaSnap = await dbRef.doc('data/rawMeta').get();
+  if (metaSnap.exists && metaSnap.data() && metaSnap.data().chunks) {
+    const meta = metaSnap.data();
+    let rows = [];
+    for (let i = 0; i < meta.chunks; i++) {
+      const c = await dbRef.collection('rawChunks').doc(meta.version + '_' + String(i).padStart(3,'0')).get();
+      if (!c.exists || !c.data() || !Array.isArray(c.data().rows)) return null; /* base incompleta: usa a padrão */
+      rows = rows.concat(c.data().rows);
+    }
+    return rows.length ? { rows, meta } : null;
+  }
+  /* compatibilidade com bases salvas no formato antigo */
+  const legacy = await dbRef.doc('data/rawRows').get();
+  if (legacy.exists && legacy.data() && Array.isArray(legacy.data().rows) && legacy.data().rows.length) {
+    return { rows: legacy.data().rows, meta: legacy.data() };
+  }
+  return null;
 }
 
 /* tenta conectar ao banco da plataforma; se não houver (ou der erro), segue com a base padrão sem quebrar nada */
 async function initCloudSync() {
+  /* 1) abre na hora com a última planilha salva neste navegador (ou a base padrão) */
+  const local = await loadLocalBase();
+  let localMeta = null;
+  if (local) { RAW = local.rows; localMeta = local.meta; }
+  cloudStatus = 'local'; updateCloudStatusUI(localMeta);
+  rebuildAllExec();
+
+  /* 2) no link do Claude, a base da nuvem (compartilhada) vale se for mais recente que a local */
   try {
-    if (typeof window.claude === 'undefined' || !window.claude.use) { updateCloudStatusUI(); rebuildAllExec(); return; }
+    if (typeof window.claude === 'undefined' || !window.claude.use) return;
     dbRef = await window.claude.use('db');
-    if (!dbRef) { cloudStatus = 'local'; updateCloudStatusUI(); rebuildAllExec(); return; }
-
+    if (!dbRef) return;
     try {
-      const snap = await dbRef.doc('data/rawRows').get();
-      if (snap.exists && snap.data() && Array.isArray(snap.data().rows) && snap.data().rows.length) {
-        RAW = snap.data().rows;
-        cloudStatus = 'cloud';
-        updateCloudStatusUI(snap.data());
-      } else {
-        cloudStatus = 'local';
-        updateCloudStatusUI();
+      const cloud = await loadCloudBase();
+      const cloudTime = cloud && cloud.meta && cloud.meta.updatedAt ? cloud.meta.updatedAt : '';
+      const localTime = localMeta && localMeta.updatedAt ? localMeta.updatedAt : '';
+      if (cloud && cloudTime >= localTime) {
+        RAW = cloud.rows; cloudStatus = 'cloud'; updateCloudStatusUI(cloud.meta); rebuildAllExec();
+      } else if (local && !cloud) {
+        /* planilha carregada antes sem nuvem: envia agora para ficar compartilhada */
+        cloudStatus = 'saving'; updateCloudStatusUI();
+        try { await saveCloudBase(local.rows, localMeta.fileName); cloudStatus = 'cloud'; updateCloudStatusUI(localMeta); }
+        catch (e) { cloudStatus = 'local'; updateCloudStatusUI(localMeta); }
       }
-    } catch (e) {
-      cloudStatus = 'local'; updateCloudStatusUI();
-    }
-
+    } catch (e) { /* segue com a base local */ }
     try {
       const notesSnap = await dbRef.collection('notes').get();
       notesSnap.docs.forEach(d => { if (d.exists && d.data() && d.data().text) notesStore[d.id] = d.data().text; });
+      if (currentFiltered[ishiIdx]) renderNoteExec(currentFiltered[ishiIdx].volume);
     } catch (e) { /* mantém o que já tinha local */ }
-
   } catch (e) {
-    dbRef = null; cloudStatus = 'local'; updateCloudStatusUI();
+    dbRef = null;
   }
-  rebuildAllExec();
 }
 
 function rebuildAllExec() {
@@ -876,10 +991,15 @@ function rebuildAllExec() {
   document.getElementById('fMesExec').value = '';
   document.getElementById('fVolumeExec').value = '';
   populateExecFilters();
+  /* abre sempre no mês atual; se a base ainda não tiver esse mês, usa o mês mais recente disponível */
+  const mesSelEl = document.getElementById('fMesExec');
+  const hoje = new Date();
+  const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  const mesesBase = [...new Set(ALL.map(o=>o.mes).filter(Boolean))].sort();
+  if (mesesBase.includes(mesAtual)) mesSelEl.value = mesAtual;
+  else if (mesesBase.length) mesSelEl.value = mesesBase[mesesBase.length-1];
   renderRankFilterChip();
-  currentFiltered = ALL.slice();
-  renderAll();
-  showIshiAt(0);
+  applyExecFilter();
 }
 
 document.getElementById('fileInputExec').addEventListener('change', function(e) {
@@ -975,11 +1095,14 @@ document.getElementById('fileInputExec').addEventListener('change', function(e) 
       if (skipped > 0) { console.warn(skipped + ' linha(s) sem Volume foram ignoradas mesmo após preencher mescladas.'); }
       RAW = rows;
       rebuildAllExec();
+      const localMeta = await saveLocalBase(rows, file.name);
+      cloudStatus = 'local'; updateCloudStatusUI(localMeta);
+      if (!localMeta) alert('A planilha foi carregada, mas este navegador não permitiu salvá-la. Ao fechar e abrir de novo, volta a base anterior.');
       if (dbRef) {
         cloudStatus = 'saving'; updateCloudStatusUI();
         try {
-          await dbRef.doc('data/rawRows').set({ rows, updatedAt: new Date().toISOString(), fileName: file.name });
-          cloudStatus = 'cloud'; updateCloudStatusUI({ updatedAt: new Date().toISOString() });
+          await saveCloudBase(rows, file.name);
+          cloudStatus = 'cloud'; updateCloudStatusUI({ updatedAt: new Date().toISOString(), fileName: file.name });
         } catch (err2) {
           cloudStatus = 'error'; updateCloudStatusUI();
           alert('A planilha foi carregada nesta tela, mas não deu pra salvar na nuvem (' + (err2.code||err2.message) + '). Quem abrir a página não verá essa atualização.');
@@ -990,9 +1113,10 @@ document.getElementById('fileInputExec').addEventListener('change', function(e) 
     }
   };
   reader.readAsArrayBuffer(file);
+  e.target.value = '';
 });
 
-function restaurarBaseOriginalExec() { RAW = ORIGINAL_RAW.slice(); cloudStatus = 'local'; updateCloudStatusUI(); rebuildAllExec(); }
+async function restaurarBaseOriginalExec() { await clearLocalBase(); RAW = ORIGINAL_RAW.slice(); cloudStatus = 'local'; updateCloudStatusUI(); rebuildAllExec(); }
 
 initCloudSync();
 </script>
